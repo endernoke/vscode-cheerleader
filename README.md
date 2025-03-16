@@ -8,24 +8,28 @@ Coming soon...
 
 ## Installation
 
-We will be available on the VSCode Extensions Marketplace soon. For now, you can install from source with the steps below:
+We will be available on the VSCode Extensions Marketplace soon. For now, you can install from source with the steps below.
+
+`node.js` and `npm` are required for installing from source. You can install them from npm's [official website](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
+
 1. Clone the repo:
    ```
    git clone https://github.com/endernoke/vscode-cheerleader
    ```
-
-2. Install the VScode extension CLI
+2. Install project dependencies:
+   ```
+   npm install
+   ```
+3. Install the VScode extension CLI
    ```
    npm install -g @vscode/vsce
    ```
-
-3. In the project directory, run the following command to generate a `.vsix` file:
+4. In the project directory, run the following command to generate a `.vsix` file:
    ```
    cd path/to/vscode-cheerleader
    vsce package
    ```
-
-4. Open VSCode and go to the extensions tab. Under more options, select "Install from VSIX" and select the `.vsix` file you just built to install it.
+5. Open VSCode and go to the extensions tab. Under more options, select "Install from VSIX" and select the `.vsix` file you just built to install it.
 
 ## Extension Settings
 
