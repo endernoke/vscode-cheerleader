@@ -33,7 +33,7 @@ Coming soon...
 
 ## License
 
-Released under the (MIT License)[LICENSE]
+Released under the [MIT License](LICENSE).
 
 The interactive anime cheerleader is built with live2d. Note that none of the live2d models used are owned by the authors of this repository. The copyrights of all Live2D models, images, and motion data belong to their respective original authors (e.g. [HakkoAI](https://www.doudou.fun)). They should not be used for commercial purposes.
 
