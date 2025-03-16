@@ -9,6 +9,11 @@
   "categories": [
     "Other"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/endernoke/vscode-cheerleader"
+  },
+  "license": "MIT",
   "activationEvents": [
     "onStartupFinished"
   ],
