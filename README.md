@@ -6,9 +6,26 @@ Supercharge your dev experience with an anime coding companion!
 
 Coming soon...
 
-## Requirements
+## Installation
 
-To use this extension, you need electron.js installed.
+We will be available on the VSCode Extensions Marketplace soon. For now, you can install from source with the steps below:
+1. Clone the repo:
+   ```
+   git clone https://github.com/endernoke/vscode-cheerleader
+   ```
+
+2. Install the VScode extension CLI
+   ```
+   npm install -g @vscode/vsce
+   ```
+
+3. In the project directory, run the following command to generate a `.vsix` file:
+   ```
+   cd path/to/vscode-cheerleader
+   vsce package
+   ```
+
+4. Open VSCode and go to the extensions tab. Under more options, select "Install from VSIX" and select the `.vsix` file you just built to install it.
 
 ## Extension Settings
 
