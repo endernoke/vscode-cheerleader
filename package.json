@@ -1,12 +1,14 @@
 {
   "name": "cheerleader",
   "displayName": "cheerleader",
-  "description": "Supercharge coding with an anime companion",
+  "description": "Supercharge your dev experience with an anime coding companion",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.98.0"
   },
   "categories": [
+    "Themes",
+    "AI",
     "Other"
   ],
   "repository": {

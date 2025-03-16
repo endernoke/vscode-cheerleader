@@ -16,20 +16,24 @@ We will be available on the VSCode Extensions Marketplace soon. For now, you can
    ```
    git clone https://github.com/endernoke/vscode-cheerleader
    ```
-2. Install project dependencies:
+2. Install `electron.js`, which is required for rendering the interactive cheerleader. We recommend installing globally so you don't need to install it individually for every workspace.
+   ```
+   npm install -g electron
+   ```
+3. Install project dependencies:
    ```
    npm install
    ```
-3. Install the VScode extension CLI
+4. Install the VScode extension CLI
    ```
    npm install -g @vscode/vsce
    ```
-4. In the project directory, run the following command to generate a `.vsix` file:
+5. In the project directory, run the following command to generate a `.vsix` file:
    ```
    cd path/to/vscode-cheerleader
    vsce package
    ```
-5. Open VSCode and go to the extensions tab. Under more options, select "Install from VSIX" and select the `.vsix` file you just built to install it.
+6. Open VSCode and go to the extensions tab. Under more options, select "Install from VSIX" and select the `.vsix` file you just built to install it.
 
 ## Extension Settings
 
