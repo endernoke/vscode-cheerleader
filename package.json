@@ -31,13 +31,42 @@
         "command": "cheerleader.askCopilot",
         "title": "Ask Copilot",
         "category": "Cheerleader"
+      },
+      {
+        "command": "cheerleader.getAnnotations",
+        "title": "Toggle cheerleader annotations",
+        "icon": "$(comment)",
+        "category": "Cheerleader"
       }
     ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "cheerleader.getAnnotations",
+          "group": "navigation"
+        }
+      ]
+    },
     "keybindings": [
       {
         "command": "cheerleader.askCopilot",
         "key": "cmd+shift+a",
         "mac": "cmd+shift+a"
+      }
+    ],
+    "chatParticipants": [
+      {
+        "id": "cheerleader.chat",
+        "name": "cheerleader",
+        "fullName": "Cheerleader AI",
+        "description": "Supercharge your dev experience with an anime coding companion",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "exercise",
+            "description": "Get a random exercise to solve"
+          }
+        ]
       }
     ]
   },
