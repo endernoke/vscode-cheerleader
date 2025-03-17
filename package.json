@@ -24,7 +24,20 @@
     "commands": [
       {
         "command": "cheerleader.helloWorld",
-        "title": "Hello World"
+        "title": "Hello World",
+        "category": "Cheerleader"
+      },
+      {
+        "command": "cheerleader.askCopilot",
+        "title": "Ask Copilot",
+        "category": "Cheerleader"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "cheerleader.askCopilot",
+        "key": "cmd+shift+a",
+        "mac": "cmd+shift+a"
       }
     ]
   },
@@ -49,6 +62,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "vscode": "^1.1.37",
     "ws": "^8.18.1"
   }
 }
