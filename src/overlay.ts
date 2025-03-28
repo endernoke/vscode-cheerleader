@@ -108,6 +108,13 @@ export function activateOverlay(context: vscode.ExtensionContext) {
     );
     return;
   }
+  // try {
+  //   executeInBackground("npx", ["electron", overlayAppPath]);
+  // } catch (e) {
+  //   vscode.window.showErrorMessage("Error starting overlay app: " + e);
+  //   return;
+  // }
+
   try {
     // Register command to manually trigger the task
     let disposable = vscode.commands.registerCommand('cheerleader.launchOverlay', () => {
@@ -128,8 +135,7 @@ export function activateOverlay(context: vscode.ExtensionContext) {
     // Run task on startup
     executeLaunchOverlayTask(overlayAppPath);
   } catch (e) {
-    vscode.window.showErrorMessage("Error starting overlay app: " + e);
-    return;
+    vscode.window.showErrorMessage(`Failed to start overlay: ${e}`);
   }
 
   context.subscriptions.push(
