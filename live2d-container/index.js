@@ -3,6 +3,8 @@ const modelUrl = "https://download.doudou.fun/models/Nika/Nika.model3.json";
 const live2d = PIXI.live2d;
 const MotionPriority = live2d.MotionPriority;
 
+let model = null;
+
 (async function main() {
   const noResetMotions = ['RESET', 'JUMP_BACK'];
 
@@ -14,7 +16,7 @@ const MotionPriority = live2d.MotionPriority;
     backgroundAlpha: 0, // transparent
   });
 
-  const model = await live2d.Live2DModel.from(
+  model = await live2d.Live2DModel.from(
     modelUrl,
   );
 
@@ -31,6 +33,7 @@ const MotionPriority = live2d.MotionPriority;
 
   makeDraggable(model);
 
+  model.isSpeaking = false;
   model.currentMotion = null;
   model.handleExecuteMotion = (motionExt, executionPriority = MotionPriority.FORCE) => {
     try {
@@ -55,6 +58,12 @@ const MotionPriority = live2d.MotionPriority;
       // End of life
       app.stage.removeChild(model);
       return;
+    }
+    if (model.isSpeaking) {
+      const position = model.position.x <= -110 ? "LEFT" : 
+                  model.position.x >= window.innerWidth - 90 ? "RIGHT" : 
+                  "CENTER";
+      model.handleExecuteMotion(`${position}_SAYING`, MotionPriority.NORMAL);
     }
   });
   
@@ -154,3 +163,21 @@ function makeDraggable(model) {
     model.dragging = false;
   });
 }
+
+window.electronAPI.onStartSpeak((event, message) => {  
+  model.isSpeaking = true;
+});
+
+window.electronAPI.onStopSpeak((event, message) => {  
+  model.isSpeaking = false;
+  const position = model.position.x <= -110 ? "LEFT" : 
+                  model.position.x >= window.innerWidth - 90 ? "RIGHT" : 
+                  "CENTER";
+  model.handleExecuteMotion(`${position}_RESET`, MotionPriority.FORCE);
+});
+
+window.electronAPI.onQuit((event, message) => {  
+  console.log("quit");
+  if (!model) return;
+  model.handleExecuteMotion('JUMP_BACK', MotionPriority.FORCE);
+});
