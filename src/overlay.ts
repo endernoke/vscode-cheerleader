@@ -3,34 +3,31 @@ import * as WebSocket from "ws";
 import { ChildProcess, spawn, SpawnOptions } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
-import { TaskScope, ShellExecution, Task, TaskDefinition } from 'vscode';
+import { TaskScope, ShellExecution, Task, TaskDefinition, TaskPresentationOptions } from 'vscode';
 
 interface LaunchOverlayTaskDefinition extends TaskDefinition {
   type: string;
   command: string;
-  presentation: {
-    reveal: string;
-    focus: boolean;
-    panel: string;
-  };
 }
 
 function executeLaunchOverlayTask(overlayAppPath: string) {
   const taskDefinition: LaunchOverlayTaskDefinition = {
     type: 'shell',
     command: `npx electron ${overlayAppPath}`,
-    presentation: {
-      reveal: "never", //TODO: This doesn't work, the terminal always shows up. Will investigate.
-      focus: false,
-      panel: "dedicated",
-    }
+  };
+
+  // Create shell execution with options to hide the terminal
+  const presentationOptions: TaskPresentationOptions = {
+    reveal: vscode.TaskRevealKind.Never,
+    panel: vscode.TaskPanelKind.Dedicated,
+    focus: false,
+    echo: false,
+    showReuseMessage: false,
+    clear: false
   };
 
   const execution = new ShellExecution(
-    taskDefinition.command,
-    // {
-    //   cwd: __dirname
-    // }
+    taskDefinition.command
   );
 
   const task = new Task(
@@ -40,6 +37,8 @@ function executeLaunchOverlayTask(overlayAppPath: string) {
     'cheerleader',
     execution
   );
+
+  task.presentationOptions = presentationOptions;
 
   vscode.tasks.executeTask(task).then(undefined, (error) => {
     vscode.window.showErrorMessage(`Failed to execute task: ${error}`);
