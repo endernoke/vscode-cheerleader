@@ -23,8 +23,13 @@
   "contributes": {
     "commands": [
       {
-        "command": "cheerleader.helloWorld",
-        "title": "Hello World",
+        "command": "cheerleader.launchOverlay",
+        "title": "Launch Interactive Cheerleader",
+        "category": "Cheerleader"
+      },
+      {
+        "command": "cheerleader.killOverlay",
+        "title": "Dismiss Interactive Cheerleader",
         "category": "Cheerleader"
       },
       {
