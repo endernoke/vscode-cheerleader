@@ -3,39 +3,61 @@ import * as WebSocket from "ws";
 import { ChildProcess, spawn, SpawnOptions } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
+import { TaskScope, ShellExecution, Task, TaskDefinition } from 'vscode';
 
-function executeInBackground(
-  command: string,
-  args: string[] = []
-): ChildProcess {
-  const child = spawn(command, args, {
-    detached: true,
-    stdio: "ignore", // Prevents blocking on stdio
-    shell: true,
-    env: {},
-    windowsHide: true, // Hide the terminal window on Windows
-  });
-
-  // Unref the child process.  This allows the parent process to exit
-  // even if the child is still running.
-  child.unref();
-
-  return child;
+interface LaunchOverlayTaskDefinition extends TaskDefinition {
+  type: string;
+  command: string;
+  presentation: {
+    reveal: string;
+    focus: boolean;
+    panel: string;
+  };
 }
 
-let overlayProcess: ChildProcess | null = null;
+function executeLaunchOverlayTask(overlayAppPath: string) {
+  const taskDefinition: LaunchOverlayTaskDefinition = {
+    type: 'shell',
+    command: `npx electron ${overlayAppPath}`,
+    presentation: {
+      reveal: "never", //TODO: This doesn't work, the terminal always shows up. Will investigate.
+      focus: false,
+      panel: "dedicated",
+    }
+  };
+
+  const execution = new ShellExecution(
+    taskDefinition.command,
+    // {
+    //   cwd: __dirname
+    // }
+  );
+
+  const task = new Task(
+    taskDefinition,
+    TaskScope.Global,
+    'Cheerleader Overlay',
+    'cheerleader',
+    execution
+  );
+
+  vscode.tasks.executeTask(task).then(undefined, (error) => {
+    vscode.window.showErrorMessage(`Failed to execute task: ${error}`);
+  });
+}
+
 const WS_PORT = 3000;
 
-let ws: any;
+let ws: WebSocket.WebSocket;
+let wss: WebSocket.Server;
 
 function getVSCodeWindowInfo() {
   // Mock response
   return { x: 100, y: 100, width: 800, height: 600 };
 }
 
-export function activateOverlay(context: vscode.ExtensionContext) {
-  // Start WebSocket server
-  const wss = new WebSocket.Server({ port: WS_PORT });
+function startWebSocketServer() {
+  wss = new WebSocket.Server({ port: WS_PORT });
 
   wss.on("connection", (_ws) => {
     console.log("Overlay window connected");
@@ -64,6 +86,16 @@ export function activateOverlay(context: vscode.ExtensionContext) {
       clearInterval(updateInterval);
     });
   });
+}
+
+export function activateOverlay(context: vscode.ExtensionContext) {
+  const killOverlayApp = () => {
+    // The overlay app will quit when the websocket is closed
+    console.log("Closing WebSocket server");
+    ws.close();
+    wss.close();
+    // vscode.window.showInformationMessage("Overlay app stopped");
+  };
 
   // show info message
   // vscode.window.showInformationMessage("WebSocket server started on port " + WS_PORT);
@@ -78,7 +110,24 @@ export function activateOverlay(context: vscode.ExtensionContext) {
     return;
   }
   try {
-    executeInBackground("npx", ["electron", overlayAppPath]);
+    // Register command to manually trigger the task
+    let disposable = vscode.commands.registerCommand('cheerleader.launchOverlay', () => {
+      startWebSocketServer();
+      executeLaunchOverlayTask(overlayAppPath);
+    });
+
+    context.subscriptions.push(disposable);
+
+    context.subscriptions.push(
+      vscode.commands.registerCommand("cheerleader.killOverlay", () => {
+        killOverlayApp();
+      })
+    );
+
+    // Start WebSocket server
+    startWebSocketServer();
+    // Run task on startup
+    executeLaunchOverlayTask(overlayAppPath);
   } catch (e) {
     vscode.window.showErrorMessage("Error starting overlay app: " + e);
     return;
@@ -86,12 +135,7 @@ export function activateOverlay(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.Disposable.from({
-      dispose: () => {
-        wss.close();
-        if (overlayProcess) {
-          overlayProcess.kill();
-        }
-      },
+      dispose: killOverlayApp
     })
   );
   // show info message
