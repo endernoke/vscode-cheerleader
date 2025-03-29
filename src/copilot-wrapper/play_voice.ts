@@ -6,6 +6,10 @@ import { v4 as uuid } from "uuid";
 import path from "path";
 import { createAudioFileFromText } from "../services/text_to_speech";
 
+/**
+ * "On the second day, George said 'Let there be sound!' and there was sound."
+ * -- The Georgeiste Manifesto, Chapter 2, Verse 1
+ */
 export class SoundPlayer {
   private static audioPlayer = player({});
   private static isPlaying = false;
@@ -61,6 +65,11 @@ export class SoundPlayer {
   }
 }
 
+/**
+ * Converts text to speech and plays it using the SoundPlayer.
+ * @param text The text to convert to speech.
+ * @returns A promise that resolves when the audio is played.
+ */
 export const playTextToSpeech = async (text: string): Promise<void> => {
   if (!SoundPlayer.context) {
     throw new Error("SoundPlayer not initialized with extension context");

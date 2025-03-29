@@ -1,3 +1,6 @@
+// WARNING: This file has not been tested, very likely it will be removed. 
+// We will be using node-microphone since it seems to be working now.
+
 import * as vscode from "vscode";
 
 export function activateSpeechCapture(context: vscode.ExtensionContext) {
