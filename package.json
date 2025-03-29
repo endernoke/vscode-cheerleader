@@ -47,6 +47,21 @@
         "command": "cheerleader.testVoice",
         "title": "Test Voice Module",
         "category": "Cheerleader"
+      },
+      {
+        "command": "cheerleader.startRecording",
+        "title": "Start Voice Recording",
+        "category": "Cheerleader"
+      },
+      {
+        "command": "cheerleader.stopRecording",
+        "title": "Stop Voice Recording",
+        "category": "Cheerleader"
+      },
+      {
+        "command": "cheerleader.startVoiceInteraction",
+        "title": "Speak to Cheerleader",
+        "category": "Cheerleader"
       }
     ],
     "menus": {
@@ -62,6 +77,11 @@
         "command": "cheerleader.askCopilot",
         "key": "cmd+shift+a",
         "mac": "cmd+shift+a"
+      },
+      {
+        "command": "cheerleader.startVoiceInteraction",
+        "key": "cmd+shift+v",
+        "mac": "cmd+shift+v"
       }
     ],
     "chatParticipants": [
@@ -92,6 +112,7 @@
     "@types/dotenv": "^6.1.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/node-microphone": "^0.1.4",
     "@types/play-sound": "^1.1.2",
     "@types/vscode": "^1.98.0",
     "@types/ws": "^8.18.0",
@@ -107,6 +128,7 @@
     "dotenv": "^16.4.7",
     "electron": "^35.1.1",
     "elevenlabs": "^1.55.0",
+    "node-microphone": "^0.1.6",
     "play-sound": "^1.1.6",
     "tsx": "^4.19.3",
     "uuid": "^11.1.0",
