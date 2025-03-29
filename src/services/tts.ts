@@ -8,9 +8,7 @@ dotenv.config({
   path: path.resolve(__dirname, "../../.env"),
 });
 
-// const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const ELEVENLABS_API_KEY =
-  "sk_fe0eb8d6911445e671b5983cc2bfe522ea77742e52c47c08";
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
 if (!ELEVENLABS_API_KEY) {
   throw new Error("Missing ELEVENLABS_API_KEY in environment variables");
