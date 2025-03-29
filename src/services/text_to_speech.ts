@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 import { ElevenLabsClient } from "elevenlabs";
 import { createWriteStream } from "fs";
-import { v4 as uuid } from "uuid";
 import path from "path";
 
 dotenv.config({
@@ -19,7 +18,8 @@ const client = new ElevenLabsClient({
 });
 
 export const createAudioFileFromText = async (
-  text: string
+  text: string,
+  filePath: string
 ): Promise<string> => {
   return new Promise<string>(async (resolve, reject) => {
     try {
@@ -35,11 +35,10 @@ export const createAudioFileFromText = async (
         // },
       });
 
-      const fileName = `${uuid()}.mp3`;
-      const fileStream = createWriteStream(fileName);
+      const fileStream = createWriteStream(filePath);
 
       audio.pipe(fileStream);
-      fileStream.on("finish", () => resolve(fileName)); // Resolve with the fileName
+      fileStream.on("finish", () => resolve(filePath)); // Resolve with the fileName
       fileStream.on("error", reject);
     } catch (error) {
       reject(error);
