@@ -17,6 +17,12 @@ const client = new ElevenLabsClient({
   apiKey: ELEVENLABS_API_KEY,
 });
 
+/**
+ * Convert an audio file to text using ElevenLabs speech-to-text API
+ * @param audioFilePath Path to the audio file to transcribe
+ * @param modelId Optional model ID to use for transcription
+ * @returns Promise with the transcribed text
+ */
 export const createAudioFileFromText = async (
   text: string,
   filePath: string
@@ -46,6 +52,11 @@ export const createAudioFileFromText = async (
   });
 };
 
+/**
+ * Convert text to speech using ElevenLabs API and return as a Buffer
+ * @param text The text to convert to speech
+ * @returns A promise that resolves to a Buffer containing the audio data
+ */
 export const createAudioStreamFromText = async (
   text: string
 ): Promise<Buffer> => {

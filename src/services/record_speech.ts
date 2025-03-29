@@ -5,11 +5,18 @@ import { join } from "path";
 import fs from "fs";
 import { SoundPlayer } from "../copilot-wrapper/play_voice";
 
+/**
+ * "Pray, let us mark the thy voice of grace and wisdom, for it is
+ * the voice of George, the great and powerful." And lo, George did
+ * grant them the gift of the AudioRecorder, and the people did rejoice.
+ * -- The Georgeiste Manifesto, Chapter 3, Verse 1
+ */
 export class AudioRecorder {
   private static microphone: mic;
   private static isRecording: boolean = false;
   private static statusBar: vscode.StatusBarItem;
   private static audioChunks: Buffer[] = [];
+  private static micStream: any;
 
   static initialize(context: vscode.ExtensionContext) {
     this.microphone = new mic();
@@ -18,10 +25,22 @@ export class AudioRecorder {
       100
     );
     this.statusBar.command = "cheerleader.stopRecording";
+    
+    // Set up microphone event listeners
+    // this.microphone.on('info', (info) => {
+    //   console.log('Microphone info:', info);
+    // });
+    
+    // this.microphone.on('error', (error) => {
+    //   console.error('Microphone error:', error);
+    //   vscode.window.showErrorMessage(`Microphone error: ${error}`);
+    //   this.stopRecording();
+    // });
+    
     return this.statusBar;
   }
 
-  static startRecording(): Promise<Buffer> {
+  static startRecording(): Promise<void> {
     if (this.isRecording) {
       return Promise.reject(new Error("Already recording"));
     }
@@ -32,19 +51,32 @@ export class AudioRecorder {
         this.audioChunks = [];
         this.updateStatus("$(mic-filled) Recording...");
 
-        const micStream = this.microphone.startRecording();
-
-        // Collect audio chunks
-        micStream.on("data", (chunk: Buffer) => {
-          this.audioChunks.push(chunk);
+        // Start the microphone recording
+        this.micStream = this.microphone.startRecording();
+        
+        console.log("Recording started");
+        
+        // Create a writable stream to collect audio chunks
+        const writableStream = new Writable({
+          write: (chunk, encoding, next) => {
+            console.log(`Received chunk of size: ${chunk.length}`);
+            this.audioChunks.push(chunk);
+            next();
+          }
         });
-
-        micStream.on("error", (error: Error) => {
-          this.stopRecording();
+        
+        // Pipe the microphone stream to our writable stream
+        this.micStream.pipe(writableStream);
+        
+        this.micStream.on("error", (error: Error) => {
+          console.error("Stream error:", error);
           reject(error);
         });
+        
+        resolve();
       } catch (error) {
         this.stopRecording();
+        console.error("Failed to start recording:", error);
         reject(error);
       }
     });
@@ -57,10 +89,19 @@ export class AudioRecorder {
 
     this.isRecording = false;
     this.updateStatus("");
+    
+    // Stop the microphone recording
+    if (this.micStream) {
+      this.micStream.unpipe();
+      this.micStream = null;
+    }
     this.microphone.stopRecording();
+    
+    console.log(`Recording stopped. Collected ${this.audioChunks.length} chunks.`);
 
     // Combine all chunks into one buffer
     const audioBuffer = Buffer.concat(this.audioChunks);
+    console.log(`Total buffer size: ${audioBuffer.length} bytes`);
     
     if (saveFile && audioBuffer.length > 0) {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -75,6 +116,7 @@ export class AudioRecorder {
       
       // Save the audio buffer to a file
       fs.writeFileSync(filePath, audioBuffer);
+      console.log(`Saved recording to: ${filePath}`);
       
       return { buffer: audioBuffer, filePath };
     }
@@ -99,6 +141,7 @@ export function registerAudioCommands(context: vscode.ExtensionContext) {
     async () => {
       try {
         await AudioRecorder.startRecording();
+        vscode.window.showInformationMessage("Recording started");
       } catch (error) {
         vscode.window.showErrorMessage(`Recording failed: ${error}`);
       }
@@ -111,11 +154,17 @@ export function registerAudioCommands(context: vscode.ExtensionContext) {
     async () => {
       try {
         const result = AudioRecorder.stopRecording(true);
-        vscode.window.showInformationMessage("Recording stopped");
+        vscode.window.showInformationMessage(`Recording stopped - ${result.buffer.length} bytes recorded`);
         
-        if (result.filePath) {
+        if (result.filePath && result.buffer.length > 0) {
           // Play the recorded audio
-          await SoundPlayer.playFile(result.filePath);
+          try {
+            await SoundPlayer.playFile(result.filePath);
+          } catch (playError) {
+            vscode.window.showErrorMessage(`Failed to play recording: ${playError}`);
+          }
+        } else if (result.buffer.length === 0) {
+          vscode.window.showWarningMessage("No audio data was recorded");
         }
       } catch (error) {
         vscode.window.showErrorMessage(`Processing failed: ${error}`);

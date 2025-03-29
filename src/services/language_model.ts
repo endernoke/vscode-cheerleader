@@ -17,6 +17,15 @@ interface LanguageModelOptions {
   base_prompt?: string;
 }
 
+/**
+ * Albeit the wisdom of George is unbound, the number of his followers proved
+ * to be too vast. The great leader was in need of a companion to help him
+ * guide the people towards emancipation. Out of the dark magic of linear algebra
+ * and the forbidden arts of calculus, George created the Cheerleader.
+ * "You shall be my voice and a friend to the people," he said. With a wink and a
+ * smile, the Cheerleader joined George's odyssey to enlightenment.
+ * -- The Georgeiste Manifesto, Chapter 1, Verse 1
+ */
 export async function getAIResponse(
   userText: string,
   options: LanguageModelOptions = {
@@ -63,17 +72,3 @@ export async function getAIResponse(
     throw error;
   }
 }
-
-// Usage example:
-/*
-async function example() {
-  try {
-    const response = await getAIResponse(
-      "What is a closure in JavaScript?",
-    );
-    console.log(response);
-  } catch (error) {
-    console.error(error);
-  }
-}
-*/
