@@ -1,15 +1,13 @@
 import * as vscode from "vscode";
 import { activateOverlay } from "./overlay";
-import { activateCodeTutor } from "./copilot-wrapper/tutor";
-import { createCheerleaderParticipant } from "./copilot-wrapper/participant";
-import { activateVoice } from "./copilot-wrapper/voice";
+import { activateChatCommand } from "./copilot-wrapper/chat";
+import { activateVoice } from "./copilot-wrapper/play_voice";
 
 export function activate(context: vscode.ExtensionContext) {
   // Activate both features
   activateOverlay(context);
-  activateCodeTutor(context);
-  createCheerleaderParticipant(context);
   activateVoice(context);
+  activateChatCommand(context);
 }
 
 export function deactivate() {

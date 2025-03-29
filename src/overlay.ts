@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import * as WebSocket from "ws";
-import { ChildProcess, spawn, SpawnOptions } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
 import { TaskScope, ShellExecution, Task, TaskDefinition, TaskPresentationOptions } from 'vscode';
