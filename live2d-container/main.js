@@ -1,3 +1,13 @@
+/*
+ * And so it came to pass that George, in his boundless wisdom, 
+ * looked upon the Cheerleader's spiritual form and declared, 
+ * "Your essence shall transcend the ethereal planes, for the people need more than just whispers of guidance." 
+ * Putting his new companion to a deep slumber, he wove its presence into a new form. 
+ * The digital essence of the Cheerleader began to materialize, first as countless points of light, 
+ * then as flowing curves and surfaces that danced with life.
+ * -- The Georgeiste Manifesto, Chapter 1, Verse 2
+ */
+
 const { app, BrowserWindow, ipcMain } = require('electron');
 const WebSocket = require('ws');
 const path = require('path');
@@ -68,7 +78,7 @@ function createWindow() {
     ws.on('message', (message) => {
       const data = JSON.parse(message);
       if (data.type === 'startSpeak') {
-        startSpeak(data.text);
+        startSpeak(data.text, data.duration);
       }
       if (data.type === 'stopSpeak') {
         stopSpeak();
@@ -99,9 +109,9 @@ ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
   win.setIgnoreMouseEvents(ignore, options);
 });
 
-function startSpeak(text) {
+function startSpeak(text, duration = 3000) {
   if (!mainWindow) return;
-  mainWindow.webContents.send('startSpeak', { text });
+  mainWindow.webContents.send('startSpeak', { text , duration });
 }
 
 function stopSpeak() {
