@@ -1,6 +1,18 @@
+/*
+ * And so it came to pass that George, in his boundless wisdom, 
+ * looked upon the Cheerleader's spiritual form and declared, 
+ * "Your essence shall transcend the ethereal planes, for the people need more than just whispers of guidance." 
+ * Putting his new companion to a deep slumber, he wove its presence into a new form. 
+ * The digital essence of the Cheerleader began to materialize, first as countless points of light, 
+ * then as flowing curves and surfaces that danced with life.
+ * -- The Georgeiste Manifesto, Chapter 1, Verse 2
+ */
+
 const { app, BrowserWindow, ipcMain } = require('electron');
 const WebSocket = require('ws');
 const path = require('path');
+
+const USE_WEBSOCKET = app.commandLine.getSwitchValue("use-websocket") === "false" ? false : true;
 
 let mainWindow;
 const WS_PORT = 3000;
@@ -56,24 +68,32 @@ function createWindow() {
   // open devtools for debugging
   // mainWindow.webContents.openDevTools();
 
-  // Connect to VSCode extension's WebSocket server
-  const ws = new WebSocket(`ws://127.0.0.1:${WS_PORT}`);
-  ws.on("error", (err) => {
-    console.log(err);
-  });
+  if (USE_WEBSOCKET) {
+    // Connect to VSCode extension's WebSocket server
+    const ws = new WebSocket(`ws://127.0.0.1:${WS_PORT}`);
+    ws.on("error", (err) => {
+      console.log(err);
+    });
 
-  ws.on('message', (message) => {
-    const data = JSON.parse(message);
-    // if (data.type === 'window-info') {
-    //   const { x, y, width, height } = data.data;
-    //   mainWindow.setBounds({ x, y, width, height });
-    // }
-  });
+    ws.on('message', (message) => {
+      const data = JSON.parse(message);
+      if (data.type === 'startSpeak') {
+        startSpeak(data.text, data.duration);
+      }
+      if (data.type === 'stopSpeak') {
+        stopSpeak();
+      }
+      // if (data.type === 'window-info') {
+      //   const { x, y, width, height } = data.data;
+      //   mainWindow.setBounds({ x, y, width, height });
+      // }
+    });
 
-  ws.on('close', () => {
-    // TODO: Add quit animation
-    app.quit();
-  });
+    ws.on('close', () => {
+      // TODO: Add quit animation
+      quitApp();
+    });
+  }
 }
 
 app.whenReady().then(() => {
@@ -81,10 +101,31 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  app.quit();
+  quitApp();
 });
 
 ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   win.setIgnoreMouseEvents(ignore, options);
 });
+
+function startSpeak(text, duration = 3000) {
+  if (!mainWindow) return;
+  mainWindow.webContents.send('startSpeak', { text , duration });
+}
+
+function stopSpeak() {
+  if (!mainWindow) return;
+  mainWindow.webContents.send('stopSpeak');
+}
+
+function quitApp(mode = "graceful") {
+  if (mode === "force") {
+    app.quit();
+    return;
+  }
+  mainWindow.webContents.send('quit', {});
+  setTimeout(() => {
+    app.quit();
+  }, 4000); // wait for 4 seconds to let the animation finish
+}

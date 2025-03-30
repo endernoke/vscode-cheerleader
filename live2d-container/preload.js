@@ -26,5 +26,8 @@ window.addEventListener('DOMContentLoaded', () => {
 const { contextBridge } = require('electron/renderer');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  setIgnoreMouseEvents: (ignore, args) => ipcRenderer.send('set-ignore-mouse-events', ignore, args)
+  setIgnoreMouseEvents: (ignore, args) => ipcRenderer.send('set-ignore-mouse-events', ignore, args),
+  onStartSpeak: (callback) => ipcRenderer.on('startSpeak', callback),
+  onStopSpeak: (callback) => ipcRenderer.on('stopSpeak', callback),
+  onQuit: (callback) => ipcRenderer.on('quit', callback),
 });
