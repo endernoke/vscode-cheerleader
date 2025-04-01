@@ -82,6 +82,7 @@ function startWebSocketServer() {
 
     ws.on("close", () => {
       clearInterval(updateInterval);
+      wss?.close();
     });
   });
 }
@@ -90,8 +91,8 @@ export function activateOverlay(context: vscode.ExtensionContext) {
   const killOverlayApp = () => {
     // The overlay app will quit when the websocket is closed
     console.log("Closing WebSocket server");
-    ws.close();
-    wss.close();
+    ws?.close();
+    wss?.close();
     // vscode.window.showInformationMessage("Overlay app stopped");
   };
 

@@ -8,7 +8,7 @@
  * -- The Georgeiste Manifesto, Chapter 1, Verse 2
  */
 
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const WebSocket = require('ws');
 const path = require('path');
 
@@ -16,6 +16,7 @@ const USE_WEBSOCKET = app.commandLine.getSwitchValue("use-websocket") === "false
 
 let mainWindow;
 const WS_PORT = 3000;
+let ws = null;
 
 function showWelcomeMessage() {
   // Hardcoded because I cannot find a good ascii-art package
@@ -70,7 +71,7 @@ function createWindow() {
 
   if (USE_WEBSOCKET) {
     // Connect to VSCode extension's WebSocket server
-    const ws = new WebSocket(`ws://127.0.0.1:${WS_PORT}`);
+    ws = new WebSocket(`ws://127.0.0.1:${WS_PORT}`);
     ws.on("error", (err) => {
       console.log(err);
     });
@@ -90,7 +91,6 @@ function createWindow() {
     });
 
     ws.on('close', () => {
-      // TODO: Add quit animation
       quitApp();
     });
   }
@@ -104,9 +104,24 @@ app.on('window-all-closed', () => {
   quitApp();
 });
 
+ipcMain.on('onCloseButton', () => {
+  // Close websocket
+  // This will trigger the quitApp() function in the main process
+  if (ws) {
+    ws.close();
+  }
+  else {
+    quitApp();
+  }
+});
+
 ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   win.setIgnoreMouseEvents(ignore, options);
+});
+
+ipcMain.on('open-link-in-browser', (event, url) => {
+  shell.openExternal(url).catch(err => console.error(`Failed to open URL: ${url}`, err));
 });
 
 function startSpeak(text, duration = 3000) {

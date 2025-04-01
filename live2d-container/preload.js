@@ -7,27 +7,35 @@ const { ipcRenderer } = require('electron');
 
 let isMouseOverInteractiveElement = false;
 
-window.addEventListener('DOMContentLoaded', () => {
+const setupIgnoreMouseEvents = () => {
   const interactiveElements = document.querySelectorAll('.interactive');
   interactiveElements.forEach((element) => {
-    element.addEventListener('mouseenter', () => {
+    element.addEventListener('pointerenter', () => {
       isMouseOverInteractiveElement = true;
       ipcRenderer.send('set-ignore-mouse-events', false);
     });
 
-    element.addEventListener('mouseleave', () => {
+    element.addEventListener('pointerout', () => {
       isMouseOverInteractiveElement = false;
       ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
     });
   });
-});
+}
+
+window.addEventListener('DOMContentLoaded', setupIgnoreMouseEvents);
 
 // Expose the setIgnoreMouseEvents function to the renderer process
 const { contextBridge } = require('electron/renderer');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  setIgnoreMouseEvents: (ignore, args) => ipcRenderer.send('set-ignore-mouse-events', ignore, args),
+  setIgnoreMouseEvents: (ignore, args) => {
+    ipcRenderer.send('set-ignore-mouse-events', ignore, args);
+    isMouseOverInteractiveElement = !ignore;
+  },
+  setupIgnoreMouseEvents: setupIgnoreMouseEvents,
   onStartSpeak: (callback) => ipcRenderer.on('startSpeak', callback),
   onStopSpeak: (callback) => ipcRenderer.on('stopSpeak', callback),
+  onCloseButton: () => ipcRenderer.send('onCloseButton'),
   onQuit: (callback) => ipcRenderer.on('quit', callback),
+  openLinkInBrowser: (url) => ipcRenderer.send('open-link-in-browser', url),
 });
