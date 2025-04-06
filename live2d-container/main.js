@@ -8,7 +8,7 @@
  * -- The Georgeiste Manifesto, Chapter 1, Verse 2
  */
 
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, shell } = require('electron');
 const WebSocket = require('ws');
 const path = require('path');
 
@@ -42,11 +42,15 @@ function showWelcomeMessage() {
   console.log("==============================================");
 }
 
+/*
+ * Only call this function when the app is ready.
+ */
 function createWindow() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   mainWindow = new BrowserWindow({
-    width: 200,
-    height: 200,
-    resizable: false,
+    width: width,
+    height: height,
+    show: false,
     transparent: true,
     frame: false,
     alwaysOnTop: true,
@@ -57,8 +61,6 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js')
     }
   });
-  
-  mainWindow.maximize();
 
   mainWindow.loadFile('index.html');
   mainWindow.setIgnoreMouseEvents(true, { forward: true });
