@@ -4,9 +4,24 @@ import * as path from 'path';
 import { AudioRecorder } from '../services/record_speech';
 import { convertSpeechToText } from '../services/speech_to_text';
 import { getAIResponse } from '../services/language_model';
-import { playTextToSpeech } from './play_voice';
+import { playTextToSpeech } from '../services/play_voice';
 import { v4 as uuid } from 'uuid';
 
+interface VoicePipelineOptions {
+    customPrompt?: string;
+    fileContext?: string;
+    showTranscription?: boolean;
+    playResponse?: boolean;
+}
+
+/**
+ * Followers of George exhailed, "Oh Lord, free us from the boilerplate code of interacting
+ * with the Cheerleader! We are but mere mortals, and the task is too great for us!" George
+ * pitied the CS majors, and thus delegated the great duty of creating the pipeline to Copilot,
+ * the Earl of Vibe. "Fear not, my faithful followers," George said, "for I shall deliver
+ * you from evil and grant you the ease to interact with the Cheerleader."
+ * -- The Georgeiste Manifesto, Chapter 1, Verse 5
+ */
 export class VoiceInteractionPipeline {
     private static isProcessing: boolean = false;
     private static recordingsDir: string;
@@ -32,7 +47,22 @@ export class VoiceInteractionPipeline {
         return this.statusBarItem;
     }
     
-    static async startPipeline(): Promise<void> {
+    /**
+     * Activate the voice to voice pipeline. Allows for customization of prompt and context.
+     * You should handle the actions in the UI or the editor using AI response in the command, not here.
+     * @param options Options for the pipeline.
+     * @returns The AI's response or undefined if an error occurred.
+     * @throws Error if the pipeline fails at any step.
+     * @example
+     * const response = await VoiceInteractionPipeline.startPipeline({
+     *  customPrompt: "You are a coding assistant. Use the provided file content as context to answer the question.", 
+     *  fileContext: "const x = 5;",
+     *  showTranscription: true,
+     *  playResponse: true
+     * });
+     * console.log(response); // AI's response
+     */
+    static async startPipeline(options: VoicePipelineOptions = {}): Promise<string | undefined> {
         if (this.isProcessing) {
             vscode.window.showInformationMessage("Already processing a voice interaction");
             return;
@@ -53,7 +83,6 @@ export class VoiceInteractionPipeline {
             );
             
             if (!recordingPrompt) {
-                // User dismissed the notification without clicking Stop
                 return;
             }
             
@@ -78,19 +107,28 @@ export class VoiceInteractionPipeline {
                     throw new Error("Failed to transcribe speech or no speech detected");
                 }
                 
-                // Show transcription
-                vscode.window.showInformationMessage(`You said: ${transcription}`);
+                // Show transcription if enabled
+                if (options.showTranscription !== false) {
+                    vscode.window.showInformationMessage(`You said: ${transcription}`);
+                }
+                
                 this.updateStatus("$(hubot) Thinking...");
                 
-                // Step 4: Get AI response
-                const aiResponse = await getAIResponse(transcription);
+                // Step 4: Get AI response with context
+                const aiResponse = await getAIResponse(transcription, {
+                    basePrompt: options.customPrompt,
+                    fileContext: options.fileContext,
+                })
                 
-                // Step 5: Convert response to speech and play it
-                this.updateStatus("$(megaphone) Speaking...");
-                await playTextToSpeech(aiResponse);
+                // Step 5: Convert response to speech and play it if enabled
+                if (options.playResponse !== false) {
+                    this.updateStatus("$(megaphone) Speaking...");
+                    await playTextToSpeech(aiResponse);
+                    vscode.window.showInformationMessage(`Cheerleader: ${aiResponse}`);
+                }
+
+                return aiResponse;
                 
-                // Show the AI response in a temporary notification
-                vscode.window.showInformationMessage(`Cheerleader: ${aiResponse}`);
             } finally {
                 // Clean up the temporary file
                 try {
@@ -105,6 +143,7 @@ export class VoiceInteractionPipeline {
             const errorMessage = error instanceof Error ? error.message : String(error);
             vscode.window.showErrorMessage(`Voice interaction failed: ${errorMessage}`);
             console.error("Voice interaction pipeline error:", error);
+            return undefined;
         } finally {
             this.isProcessing = false;
             this.resetStatus();
@@ -130,7 +169,10 @@ export function registerVoiceInteractionCommands(context: vscode.ExtensionContex
         'cheerleader.startVoiceInteraction',
         async () => {
             try {
-                await VoiceInteractionPipeline.startPipeline();
+                await VoiceInteractionPipeline.startPipeline({
+                    showTranscription: true,
+                    playResponse: true
+                });
             } catch (error) {
                 vscode.window.showErrorMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
             }

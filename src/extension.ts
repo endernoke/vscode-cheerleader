@@ -1,17 +1,17 @@
 import * as vscode from "vscode";
 import { activateOverlay } from "./overlay";
-import { activateChatCommand } from "./copilot-wrapper/chat";
-import { activateVoice } from "./copilot-wrapper/play_voice";
+import { activateVoice } from "./services/play_voice";
 import { registerAudioCommands } from "./services/record_speech";
-import { registerVoiceInteractionCommands } from "./copilot-wrapper/mini_pipeline";
+import { registerVoiceInteractionCommands } from "./copilot-wrapper/voice_pipeline";
+import { registerInlineChatCommand } from "./copilot-wrapper/inline_chat";
 
 export function activate(context: vscode.ExtensionContext) {
   // Activate features
   activateOverlay(context);
   activateVoice(context);
-  activateChatCommand(context);
   registerAudioCommands(context);
   registerVoiceInteractionCommands(context); // Add the new voice interaction pipeline
+  registerInlineChatCommand(context); // Register inline chat command
 }
 
 export function deactivate() {
