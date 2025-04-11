@@ -9,12 +9,14 @@ Remember to:
 1. Keep explanations simple but informative
 2. Use cheerful tone while maintaining professionalism
 3. Add a small dose of kawaii energy to brighten their coding journey!
-4. Do not include non-englisht characters or emojis in your responses.`;
+4. Do not include non-english characters or emojis in your responses.`;
 
 interface LanguageModelOptions {
   vendor?: string;
   family?: string;
-  base_prompt?: string;
+  basePrompt?: string;
+  customPrompt?: string;
+  fileContext?: string;
 }
 
 /**
@@ -31,7 +33,7 @@ export async function getAIResponse(
   options: LanguageModelOptions = {
     vendor: "copilot",
     family: "gpt-4",
-    base_prompt: BASE_PROMPT,
+    basePrompt: BASE_PROMPT,
   }
 ): Promise<string> {
   try {
@@ -46,12 +48,20 @@ export async function getAIResponse(
     }
 
     // Prepare messages
-    const messages = options.base_prompt 
-      ? [
-          vscode.LanguageModelChatMessage.User(options.base_prompt),
-          vscode.LanguageModelChatMessage.User(userText)
-        ]
-      : [vscode.LanguageModelChatMessage.User(userText)];
+    const messages = [
+      vscode.LanguageModelChatMessage.User(options.basePrompt || BASE_PROMPT),
+      vscode.LanguageModelChatMessage.User(userText),
+    ];
+
+    // Add custom prompt if provided
+    if (options.customPrompt) {
+      messages.unshift(vscode.LanguageModelChatMessage.User(options.customPrompt));
+    }
+
+    // Add file context if provided
+    if (options.fileContext) {
+      messages.unshift(vscode.LanguageModelChatMessage.User(options.fileContext));
+    }
 
     // Get response from the model
     const chatResponse = await model.sendRequest(

@@ -3,7 +3,7 @@ import mic from "node-microphone";
 import { Writable } from "stream";
 import { join } from "path";
 import fs from "fs";
-import { SoundPlayer } from "../copilot-wrapper/play_voice";
+import { SoundPlayer } from "./play_voice";
 
 /**
  * "Pray, let us mark the thy voice of grace and wisdom, for it is
