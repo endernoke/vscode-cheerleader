@@ -14,23 +14,6 @@ export interface VoicePipelineOptions {
     playResponse?: boolean;
 }
 
-export interface ActionResponse {
-    type: 'edit' | 'comment' | 'explain' | 'conversation';
-    content: string;
-    location?: {
-        line?: number;
-        column?: number;
-        selection?: {
-            start: { line: number; character: number };
-            end: { line: number; character: number };
-        };
-    };
-}
-
-interface StructuredResponse {
-    actions: ActionResponse[];
-}
-
 /**
  * Followers of George exhailed, "Oh Lord, free us from the boilerplate code of interacting
  * with the Cheerleader! We are but mere mortals, and the task is too great for us!" George
@@ -79,7 +62,7 @@ export class VoiceInteractionPipeline {
      * });
      * console.log(response); // AI's response
      */
-    static async startPipeline(options: VoicePipelineOptions = {}): Promise<StructuredResponse | undefined> {
+    static async startPipeline(options: VoicePipelineOptions = {}): Promise<string | undefined> {
         if (this.isProcessing) {
             vscode.window.showInformationMessage("Already processing a voice interaction");
             return;
@@ -137,20 +120,14 @@ export class VoiceInteractionPipeline {
                     fileContext: options.fileContext,
                 });
                 
-                // Parse the response to separate actions
-                const structuredResponse = this.parseResponse(aiResponse);
-                
-                // Handle text-to-speech for conversation actions only
+                // Step 5: Play AI response if enabled
                 if (options.playResponse !== false) {
-                    const conversationActions = structuredResponse.actions.filter(a => a.type === 'conversation');
-                    if (conversationActions.length > 0) {
-                        this.updateStatus("$(megaphone) Speaking...");
-                        await playTextToSpeech(conversationActions[0].content);
-                        vscode.window.showInformationMessage(`Cheerleader: ${conversationActions[0].content}`);
-                    }
+                    this.updateStatus("$(play) Playing response...");
+                    await playTextToSpeech(aiResponse);
                 }
+                this.updateStatus("$(check) Done!");
 
-                return structuredResponse;
+                return aiResponse;
                 
             } finally {
                 // Clean up the temporary file
@@ -173,74 +150,6 @@ export class VoiceInteractionPipeline {
         }
     }
     
-    private static parseResponse(response: string): StructuredResponse {
-        const actions: ActionResponse[] = [];
-        
-        // Look for JSON array in code blocks directly
-        const match = response.match(/```json\s*(\[[\s\S]*?\])\s*```/);
-        if (!match) {
-            // If no JSON array found, treat entire response as conversation
-            return {
-                actions: [{
-                    type: 'conversation',
-                    content: response.trim()
-                }]
-            };
-        }
-
-        try {
-            const actionArray = JSON.parse(match[1]);
-            for (const actionData of actionArray) {
-                if (!actionData.action) continue;
-
-                const action: ActionResponse = {
-                    type: actionData.action as ActionResponse['type'],
-                    content: actionData.content || actionData.comment || actionData.text || actionData.explanation || '',
-                    location: this.parseLocation(actionData)
-                };
-                actions.push(action);
-            }
-        } catch (e) {
-            console.debug('Error parsing JSON array:', e);
-            return {
-                actions: [{
-                    type: 'conversation',
-                    content: response.trim()
-                }]
-            };
-        }
-
-        return { actions };
-    }
-
-    private static parseLocation(actionData: any): ActionResponse['location'] | undefined {
-        if (!actionData) return undefined;
-
-        if (actionData.selection) {
-            return {
-                selection: {
-                    start: {
-                        line: actionData.selection.start?.line ?? 0,
-                        character: actionData.selection.start?.character ?? 0
-                    },
-                    end: {
-                        line: actionData.selection.end?.line ?? 0,
-                        character: actionData.selection.end?.character ?? 0
-                    }
-                }
-            };
-        }
-
-        if (typeof actionData.line === 'number') {
-            return {
-                line: actionData.line,
-                column: typeof actionData.column === 'number' ? actionData.column : 0
-            };
-        }
-
-        return undefined;
-    }
-
     private static updateStatus(text: string): void {
         this.statusBarItem.text = text;
     }
