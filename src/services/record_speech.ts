@@ -3,13 +3,13 @@ import mic from "node-microphone";
 import { Writable } from "stream";
 import { join } from "path";
 import fs from "fs";
-import { SoundPlayer } from "../copilot-wrapper/play_voice";
+import { SoundPlayer } from "./play_voice";
 
 /**
  * "Pray, let us mark the thy voice of grace and wisdom, for it is
  * the voice of George, the great and powerful." And lo, George did
  * grant them the gift of the AudioRecorder, and the people did rejoice.
- * -- The Georgeiste Manifesto, Chapter 3, Verse 1
+ * -- The Georgeiste Manifesto, Chapter 1, Verse 5
  */
 export class AudioRecorder {
   private static microphone: mic;

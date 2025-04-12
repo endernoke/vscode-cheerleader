@@ -126,6 +126,15 @@ ipcMain.on('open-link-in-browser', (event, url) => {
   shell.openExternal(url).catch(err => console.error(`Failed to open URL: ${url}`, err));
 });
 
+ipcMain.on('run-vscode-command', (event, command) => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({
+      type: 'run-vscode-command',
+      command: command
+    }));
+  }
+});
+
 function startSpeak(text, duration = 3000) {
   if (!mainWindow) return;
   mainWindow.webContents.send('startSpeak', { text , duration });

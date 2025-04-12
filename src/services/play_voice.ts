@@ -4,7 +4,8 @@ import { existsSync } from "fs";
 import fs from "fs";
 import { v4 as uuid } from "uuid";
 import path from "path";
-import { createAudioFileFromText } from "../services/text_to_speech";
+import { createAudioFileFromText } from "./text_to_speech";
+import { WebSocketService } from "./websocket_service";
 
 /**
  * "On the second day, George said 'Let there be sound!' and there was sound."
@@ -70,10 +71,12 @@ export class SoundPlayer {
  * @param text The text to convert to speech.
  * @returns A promise that resolves when the audio is played.
  */
-export const playTextToSpeech = async (text: string): Promise<void> => {
+export const playTextToSpeech = async (text: string, duration?: number): Promise<void> => {
   if (!SoundPlayer.context) {
     throw new Error("SoundPlayer not initialized with extension context");
   }
+
+  const webSocketService = WebSocketService.getInstance();
 
   try {
     // Use the extension's storage path for temporary files
@@ -97,8 +100,16 @@ export const playTextToSpeech = async (text: string): Promise<void> => {
       throw new Error("Failed to create audio file");
     }
 
-    // Play the audio file
-    await SoundPlayer.playFile(filename);
+    // Start Live2D character's speech animation
+    webSocketService.startSpeak(text, duration);
+
+    try {
+      // Play the audio file
+      await SoundPlayer.playFile(filename);
+    } finally {
+      // Stop Live2D character's speech animation
+      webSocketService.stopSpeak();
+    }
 
     // Clean up the file after playback
     fs.unlink(filename, (err) => {
@@ -109,6 +120,7 @@ export const playTextToSpeech = async (text: string): Promise<void> => {
       }
     });
   } catch (error) {
+    webSocketService.stopSpeak(); // Ensure animation stops even if there's an error
     console.error("Text-to-speech error:", error);
     vscode.window.showErrorMessage(
       `Failed to play audio: ${
@@ -138,7 +150,9 @@ export function activateVoice(context: vscode.ExtensionContext) {
               cancellable: false,
             },
             async () => {
-              await playTextToSpeech(text);
+              // Use a duration based on text length, with a minimum of 3 seconds
+              const duration = Math.max(3000, text.length * 100);
+              await playTextToSpeech(text, duration);
             }
           );
         }

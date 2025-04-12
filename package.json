@@ -33,55 +33,49 @@
         "category": "Cheerleader"
       },
       {
-        "command": "cheerleader.askCopilot",
-        "title": "Ask Copilot",
-        "category": "Cheerleader"
-      },
-      {
-        "command": "cheerleader.getAnnotations",
-        "title": "Toggle cheerleader annotations",
-        "icon": "$(comment)",
-        "category": "Cheerleader"
-      },
-      {
         "command": "cheerleader.testVoice",
         "title": "Test Voice Module",
-        "category": "Cheerleader"
+        "category": "Testing"
       },
       {
         "command": "cheerleader.startRecording",
         "title": "Start Voice Recording",
-        "category": "Cheerleader"
+        "category": "Testing"
       },
       {
         "command": "cheerleader.stopRecording",
         "title": "Stop Voice Recording",
-        "category": "Cheerleader"
+        "category": "Testing"
       },
       {
         "command": "cheerleader.startVoiceInteraction",
         "title": "Speak to Cheerleader",
         "category": "Cheerleader"
+      },
+      {
+        "command": "cheerleader.inlineChat",
+        "title": "Inline Chat with Cheerleader",
+        "category": "Cheerleader",
+        "icon": "$(bell)"
+      },
+      {
+        "command": "cheerleader.reviewCode",
+        "title": "Review Code with Cheerleader",
+        "category": "Cheerleader",
+        "icon": "$(eye)"
       }
     ],
-    "menus": {
-      "editor/title": [
-        {
-          "command": "cheerleader.getAnnotations",
-          "group": "navigation"
-        }
-      ]
-    },
+    "menus": {},
     "keybindings": [
-      {
-        "command": "cheerleader.askCopilot",
-        "key": "cmd+shift+a",
-        "mac": "cmd+shift+a"
-      },
       {
         "command": "cheerleader.startVoiceInteraction",
         "key": "cmd+shift+v",
         "mac": "cmd+shift+v"
+      },
+      {
+        "command": "cheerleader.inlineChat",
+        "key": "cmd+shift+c",
+        "mac": "cmd+shift+c"
       }
     ],
     "chatParticipants": [
