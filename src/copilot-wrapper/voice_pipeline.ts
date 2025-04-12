@@ -15,7 +15,7 @@ export interface VoicePipelineOptions {
 }
 
 export interface ActionResponse {
-    type: 'edit' | 'comment' | 'explain';
+    type: 'edit' | 'comment' | 'explain' | 'conversation';
     content: string;
     location?: {
         line?: number;
@@ -28,8 +28,7 @@ export interface ActionResponse {
 }
 
 interface StructuredResponse {
-    message: string;
-    actions?: ActionResponse[];
+    actions: ActionResponse[];
 }
 
 /**
@@ -134,18 +133,21 @@ export class VoiceInteractionPipeline {
                 
                 // Step 4: Get AI response with context
                 const aiResponse = await getAIResponse(transcription, {
-                    basePrompt: options.customPrompt,
+                    customPrompt: options.customPrompt,
                     fileContext: options.fileContext,
                 });
                 
-                // Parse the response to separate actions from text
+                // Parse the response to separate actions
                 const structuredResponse = this.parseResponse(aiResponse);
                 
-                // Handle text-to-speech only for the message part, not the actions
+                // Handle text-to-speech for conversation actions only
                 if (options.playResponse !== false) {
-                    this.updateStatus("$(megaphone) Speaking...");
-                    await playTextToSpeech(structuredResponse.message);
-                    vscode.window.showInformationMessage(`Cheerleader: ${structuredResponse.message}`);
+                    const conversationActions = structuredResponse.actions.filter(a => a.type === 'conversation');
+                    if (conversationActions.length > 0) {
+                        this.updateStatus("$(megaphone) Speaking...");
+                        await playTextToSpeech(conversationActions[0].content);
+                        vscode.window.showInformationMessage(`Cheerleader: ${conversationActions[0].content}`);
+                    }
                 }
 
                 return structuredResponse;
@@ -173,52 +175,42 @@ export class VoiceInteractionPipeline {
     
     private static parseResponse(response: string): StructuredResponse {
         const actions: ActionResponse[] = [];
-        let message = response;
-
-        // Find all potential JSON blocks using a more precise regex
-        // This looks for '{' followed by any characters including newlines, containing "action"
-        // and ending with '}'. It uses positive lookahead to ensure proper JSON structure
-        const jsonRegex = /({(?=[^]*?"action"[^]*?}))({[^{}]*(?:{[^{}]*})*[^{}]*})/g;
         
-        let match;
-        while ((match = jsonRegex.exec(response)) !== null) {
-            const potentialJson = match[0];
-            try {
-                // Validate that this is actually a JSON object
-                if (!potentialJson.trim().startsWith('{') || !potentialJson.trim().endsWith('}')) {
-                    continue;
-                }
-
-                const actionData = JSON.parse(potentialJson);
-                
-                // Validate required fields
-                if (!actionData.action || typeof actionData.action !== 'string') {
-                    continue;
-                }
-
-                // Remove the valid JSON block from the message
-                message = message.replace(potentialJson, '');
-                
-                // Convert to our action format
-                const action: ActionResponse = {
-                    type: this.getActionType(actionData.action),
-                    content: actionData.comment || actionData.text || actionData.explanation || '',
-                    location: this.parseLocation(actionData)
-                };
-                
-                actions.push(action);
-            } catch (e) {
-                console.debug('Skipping invalid JSON block:', potentialJson);
-                continue;
-            }
+        // Look for JSON array in code blocks directly
+        const match = response.match(/```json\s*(\[[\s\S]*?\])\s*```/);
+        if (!match) {
+            // If no JSON array found, treat entire response as conversation
+            return {
+                actions: [{
+                    type: 'conversation',
+                    content: response.trim()
+                }]
+            };
         }
 
-        // Clean up the message: remove extra newlines and trim
-        message = message
-            .replace(/\n{3,}/g, '\n\n') // Replace multiple newlines with double newline
-            .trim();
+        try {
+            const actionArray = JSON.parse(match[1]);
+            for (const actionData of actionArray) {
+                if (!actionData.action) continue;
 
-        return { message, actions };
+                const action: ActionResponse = {
+                    type: actionData.action as ActionResponse['type'],
+                    content: actionData.content || actionData.comment || actionData.text || actionData.explanation || '',
+                    location: this.parseLocation(actionData)
+                };
+                actions.push(action);
+            }
+        } catch (e) {
+            console.debug('Error parsing JSON array:', e);
+            return {
+                actions: [{
+                    type: 'conversation',
+                    content: response.trim()
+                }]
+            };
+        }
+
+        return { actions };
     }
 
     private static parseLocation(actionData: any): ActionResponse['location'] | undefined {
@@ -247,22 +239,6 @@ export class VoiceInteractionPipeline {
         }
 
         return undefined;
-    }
-
-    private static getActionType(action: string): ActionResponse['type'] {
-        switch (action.toLowerCase()) {
-            case 'add_comment':
-            case 'comment':
-                return 'comment';
-            case 'edit':
-            case 'modify':
-                return 'edit';
-            case 'explain':
-            case 'explanation':
-                return 'explain';
-            default:
-                return 'explain';
-        }
     }
 
     private static updateStatus(text: string): void {

@@ -14,7 +14,6 @@ Remember to:
 interface LanguageModelOptions {
   vendor?: string;
   family?: string;
-  basePrompt?: string;
   customPrompt?: string;
   fileContext?: string;
 }
@@ -32,8 +31,7 @@ export async function getAIResponse(
   userText: string,
   options: LanguageModelOptions = {
     vendor: "copilot",
-    family: "gpt-4",
-    basePrompt: BASE_PROMPT,
+    family: "gpt-4"
   }
 ): Promise<string> {
   try {
@@ -49,18 +47,17 @@ export async function getAIResponse(
 
     // Prepare messages
     const messages = [
-      vscode.LanguageModelChatMessage.User(options.basePrompt || BASE_PROMPT),
+      vscode.LanguageModelChatMessage.User(options.customPrompt || BASE_PROMPT),
       vscode.LanguageModelChatMessage.User(userText),
     ];
 
-    // Add custom prompt if provided
-    if (options.customPrompt) {
-      messages.unshift(vscode.LanguageModelChatMessage.User(options.customPrompt));
-    }
-
-    // Add file context if provided
+    // Add file context if provided (to the end of the messages)
     if (options.fileContext) {
-      messages.unshift(vscode.LanguageModelChatMessage.User(options.fileContext));
+      messages.push(
+        vscode.LanguageModelChatMessage.User(
+          `File context: ${options.fileContext}`
+        )
+      );
     }
 
     // Get response from the model
