@@ -3,10 +3,7 @@ import { getAIResponse } from '../services/language_model';
 import { playTextToSpeech } from '../services/play_voice';
 
 interface CodeReviewComment {
-    lines: {
-        start: number;
-        end: number;
-    };
+    line: number;
     voiceMessage: string;
     inlineComment: string;
 }
@@ -32,19 +29,6 @@ export class CodeSupport {
     private static statusBarItem: vscode.StatusBarItem;
     private static isProcessing: boolean = false;
 
-    static initialize(context: vscode.ExtensionContext) {
-        this.statusBarItem = vscode.window.createStatusBarItem(
-            vscode.StatusBarAlignment.Right,
-            998
-        );
-        this.statusBarItem.text = '$(lightbulb) Code Review';
-        this.statusBarItem.tooltip = 'Review current code with Cheerleader';
-        this.statusBarItem.command = 'cheerleader.reviewCode';
-        this.statusBarItem.show();
-
-        return this.statusBarItem;
-    }
-
     static async reviewCode(document: vscode.TextDocument): Promise<void> {
         if (this.isProcessing) {
             vscode.window.showInformationMessage('Already processing a code review');
@@ -53,7 +37,7 @@ export class CodeSupport {
 
         try {
             this.isProcessing = true;
-            this.updateStatus('$(sync~spin) Reviewing code...');
+            vscode.window.showInformationMessage('Starting code review...');
 
             const fileContent = document.getText();
             const fileName = document.fileName;
@@ -69,9 +53,9 @@ export class CodeSupport {
             {
                 "comments": [
                     {
-                        "lines": {"start": number, "end": number},
-                        "voiceMessage": "Brief audio message to justify your suggestion and what to learn from this",
-                        "inlineComment": "Actual comment to insert in code with proper code syntax"
+                        "line": "Number of the line to insert comment",
+                        "inlineComment": "Actual comment to insert in code with proper code syntax",
+                        "voiceMessage": "Brief audio message to justify your suggestion and what to learn from this"
                     }
                 ],
                 "summary": "Overall short review summary"
@@ -124,7 +108,7 @@ export class CodeSupport {
             vscode.window.showErrorMessage(`Code review failed: ${error instanceof Error ? error.message : String(error)}`);
         } finally {
             this.isProcessing = false;
-            this.resetStatus();
+            vscode.window.showInformationMessage('Code review completed.');
         }
     }
 
@@ -133,12 +117,12 @@ export class CodeSupport {
 
         // Process each comment sequentially
         for (const comment of review.comments) {
-            // Adjust the start line to account for previously added lines
-            const adjustedStartLine = comment.lines.start - 1 + linesAdded;
+            // Adjust the line number to account for previously added lines
+            const adjustedLine = comment.line - 1 + linesAdded;
 
             // Create and apply edit for this comment
             const edit = new vscode.WorkspaceEdit();
-            const position = new vscode.Position(adjustedStartLine, 0);
+            const position = new vscode.Position(adjustedLine, 0);
             const commentText = comment.inlineComment + '\n';
             edit.insert(document.uri, position, commentText);
 
@@ -146,27 +130,15 @@ export class CodeSupport {
             await vscode.workspace.applyEdit(edit);
 
             // Update the linesAdded counter
-            linesAdded += commentText.split('\n').length;
+            linesAdded += commentText.split('\n').length - 1;
 
             // Play the voice message and wait for it to complete
             await playTextToSpeech(comment.voiceMessage);
         }
     }
-
-    private static updateStatus(text: string): void {
-        this.statusBarItem.text = text;
-    }
-
-    private static resetStatus(): void {
-        this.statusBarItem.text = '$(lightbulb) Code Review';
-    }
 }
 
 export function registerCodeSupportCommands(context: vscode.ExtensionContext) {
-    // Initialize code support
-    const statusBar = CodeSupport.initialize(context);
-    context.subscriptions.push(statusBar);
-
     // Register command for manual review
     const reviewCommand = vscode.commands.registerCommand('cheerleader.reviewCode', async () => {
         const editor = vscode.window.activeTextEditor;

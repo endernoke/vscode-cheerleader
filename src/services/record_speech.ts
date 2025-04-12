@@ -9,7 +9,7 @@ import { SoundPlayer } from "./play_voice";
  * "Pray, let us mark the thy voice of grace and wisdom, for it is
  * the voice of George, the great and powerful." And lo, George did
  * grant them the gift of the AudioRecorder, and the people did rejoice.
- * -- The Georgeiste Manifesto, Chapter 1, Verse 6
+ * -- The Georgeiste Manifesto, Chapter 1, Verse 5
  */
 export class AudioRecorder {
   private static microphone: mic;

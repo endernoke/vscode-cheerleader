@@ -305,10 +305,10 @@ class InlineChat {
                 content: response.trim()
             }];
         }
-return actions;
-}
 
-    
+        return actions;
+    }
+
     /**
      * Parse location information from action data
      */
@@ -348,7 +348,9 @@ return actions;
         
         for (const action of actions) {
             switch (action.type) {
+                // NOTE: We need to change this to play audio after finished testing!
                 case 'conversation':
+                    // await playTextToSpeech(action.content);
                     vscode.window.showInformationMessage(`Cheerleader: ${action.content}`);
                     break;
                     
