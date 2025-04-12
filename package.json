@@ -56,13 +56,23 @@
         "command": "cheerleader.inlineChat",
         "title": "Inline Chat with Cheerleader",
         "category": "Cheerleader",
-        "icon": "$(comment-discussion)"
+        "icon": "$(bell)"
+      },
+      {
+        "command": "cheerleader.reviewCode",
+        "title": "Review Code with Cheerleader",
+        "category": "Cheerleader",
+        "icon": "$(eye)"
       }
     ],
     "menus": {
       "editor/title": [
         {
           "command": "cheerleader.inlineChat",
+          "group": "navigation"
+        },
+        {
+          "command": "cheerleader.reviewCode",
           "group": "navigation"
         }
       ]
