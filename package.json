@@ -65,18 +65,7 @@
         "icon": "$(eye)"
       }
     ],
-    "menus": {
-      "editor/title": [
-        {
-          "command": "cheerleader.inlineChat",
-          "group": "navigation"
-        },
-        {
-          "command": "cheerleader.reviewCode",
-          "group": "navigation"
-        }
-      ]
-    },
+    "menus": {},
     "keybindings": [
       {
         "command": "cheerleader.startVoiceInteraction",
