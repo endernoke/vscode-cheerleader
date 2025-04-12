@@ -7,11 +7,29 @@ import { getAIResponse } from '../services/language_model';
 import { playTextToSpeech } from '../services/play_voice';
 import { v4 as uuid } from 'uuid';
 
-interface VoicePipelineOptions {
+export interface VoicePipelineOptions {
     customPrompt?: string;
     fileContext?: string;
     showTranscription?: boolean;
     playResponse?: boolean;
+}
+
+export interface ActionResponse {
+    type: 'edit' | 'comment' | 'explain';
+    content: string;
+    location?: {
+        line?: number;
+        column?: number;
+        selection?: {
+            start: { line: number; character: number };
+            end: { line: number; character: number };
+        };
+    };
+}
+
+interface StructuredResponse {
+    message: string;
+    actions?: ActionResponse[];
 }
 
 /**
@@ -62,7 +80,7 @@ export class VoiceInteractionPipeline {
      * });
      * console.log(response); // AI's response
      */
-    static async startPipeline(options: VoicePipelineOptions = {}): Promise<string | undefined> {
+    static async startPipeline(options: VoicePipelineOptions = {}): Promise<StructuredResponse | undefined> {
         if (this.isProcessing) {
             vscode.window.showInformationMessage("Already processing a voice interaction");
             return;
@@ -118,16 +136,19 @@ export class VoiceInteractionPipeline {
                 const aiResponse = await getAIResponse(transcription, {
                     basePrompt: options.customPrompt,
                     fileContext: options.fileContext,
-                })
+                });
                 
-                // Step 5: Convert response to speech and play it if enabled
+                // Parse the response to separate actions from text
+                const structuredResponse = this.parseResponse(aiResponse);
+                
+                // Handle text-to-speech only for the message part, not the actions
                 if (options.playResponse !== false) {
                     this.updateStatus("$(megaphone) Speaking...");
-                    await playTextToSpeech(aiResponse);
-                    vscode.window.showInformationMessage(`Cheerleader: ${aiResponse}`);
+                    await playTextToSpeech(structuredResponse.message);
+                    vscode.window.showInformationMessage(`Cheerleader: ${structuredResponse.message}`);
                 }
 
-                return aiResponse;
+                return structuredResponse;
                 
             } finally {
                 // Clean up the temporary file
@@ -150,6 +171,100 @@ export class VoiceInteractionPipeline {
         }
     }
     
+    private static parseResponse(response: string): StructuredResponse {
+        const actions: ActionResponse[] = [];
+        let message = response;
+
+        // Find all potential JSON blocks using a more precise regex
+        // This looks for '{' followed by any characters including newlines, containing "action"
+        // and ending with '}'. It uses positive lookahead to ensure proper JSON structure
+        const jsonRegex = /({(?=[^]*?"action"[^]*?}))({[^{}]*(?:{[^{}]*})*[^{}]*})/g;
+        
+        let match;
+        while ((match = jsonRegex.exec(response)) !== null) {
+            const potentialJson = match[0];
+            try {
+                // Validate that this is actually a JSON object
+                if (!potentialJson.trim().startsWith('{') || !potentialJson.trim().endsWith('}')) {
+                    continue;
+                }
+
+                const actionData = JSON.parse(potentialJson);
+                
+                // Validate required fields
+                if (!actionData.action || typeof actionData.action !== 'string') {
+                    continue;
+                }
+
+                // Remove the valid JSON block from the message
+                message = message.replace(potentialJson, '');
+                
+                // Convert to our action format
+                const action: ActionResponse = {
+                    type: this.getActionType(actionData.action),
+                    content: actionData.comment || actionData.text || actionData.explanation || '',
+                    location: this.parseLocation(actionData)
+                };
+                
+                actions.push(action);
+            } catch (e) {
+                console.debug('Skipping invalid JSON block:', potentialJson);
+                continue;
+            }
+        }
+
+        // Clean up the message: remove extra newlines and trim
+        message = message
+            .replace(/\n{3,}/g, '\n\n') // Replace multiple newlines with double newline
+            .trim();
+
+        return { message, actions };
+    }
+
+    private static parseLocation(actionData: any): ActionResponse['location'] | undefined {
+        if (!actionData) return undefined;
+
+        if (actionData.selection) {
+            return {
+                selection: {
+                    start: {
+                        line: actionData.selection.start?.line ?? 0,
+                        character: actionData.selection.start?.character ?? 0
+                    },
+                    end: {
+                        line: actionData.selection.end?.line ?? 0,
+                        character: actionData.selection.end?.character ?? 0
+                    }
+                }
+            };
+        }
+
+        if (typeof actionData.line === 'number') {
+            return {
+                line: actionData.line,
+                column: typeof actionData.column === 'number' ? actionData.column : 0
+            };
+        }
+
+        return undefined;
+    }
+
+    private static getActionType(action: string): ActionResponse['type'] {
+        switch (action.toLowerCase()) {
+            case 'add_comment':
+            case 'comment':
+                return 'comment';
+            case 'edit':
+            case 'modify':
+                return 'edit';
+            case 'explain':
+            case 'explanation':
+                return 'explain';
+            default:
+                return 'explain';
+        }
+    }
+
     private static updateStatus(text: string): void {
         this.statusBarItem.text = text;
     }
