@@ -4,14 +4,16 @@ import { activateVoice } from "./services/play_voice";
 import { registerAudioCommands } from "./services/record_speech";
 import { registerVoiceInteractionCommands } from "./copilot-wrapper/voice_pipeline";
 import { registerInlineChatCommand } from "./copilot-wrapper/inline_chat";
+import { registerCodeSupportCommands } from "./copilot-wrapper/code_support";
 
 export function activate(context: vscode.ExtensionContext) {
   // Activate features
   activateOverlay(context);
   activateVoice(context);
   registerAudioCommands(context);
-  registerVoiceInteractionCommands(context); // Add the new voice interaction pipeline
-  registerInlineChatCommand(context); // Register inline chat command
+  registerVoiceInteractionCommands(context);
+  registerInlineChatCommand(context);
+  registerCodeSupportCommands(context);
 }
 
 export function deactivate() {

@@ -7,9 +7,7 @@ dotenv.config({
   path: path.resolve(__dirname, "../../.env"),
 });
 
-// const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const ELEVENLABS_API_KEY =
-  "sk_e8747fd55869015acefe49442294e54f79504af63707f072";
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
 if (!ELEVENLABS_API_KEY) {
   throw new Error("Missing ELEVENLABS_API_KEY in environment variables");
@@ -24,6 +22,7 @@ const client = new ElevenLabsClient({
  * @param audioFilePath Path to the audio file to transcribe
  * @param modelId Optional model ID to use for transcription
  * @returns Promise with the transcribed text
+ * @note The voice ID we use is vGQNBgLaiM3EdZtxIiuY, called "Kawaii Aeristia"
  */
 export const createAudioFileFromText = async (
   text: string,
@@ -31,7 +30,7 @@ export const createAudioFileFromText = async (
 ): Promise<string> => {
   return new Promise<string>(async (resolve, reject) => {
     try {
-      const audio = await client.textToSpeech.convert("JBFqnCBsd6RMkjVDRZzb", {
+      const audio = await client.textToSpeech.convert("vGQNBgLaiM3EdZtxIiuY", {
         model_id: "eleven_flash_v2",
         text,
         output_format: "mp3_44100_128",
