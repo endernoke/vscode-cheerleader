@@ -33,7 +33,7 @@
         "category": "Cheerleader"
       },
       {
-        "command": "cheerleader.testVoice",
+        "command": "cheerleader.testTTS",
         "title": "Test Voice Module",
         "category": "Testing"
       },
@@ -118,15 +118,18 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.4.2",
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
     "electron": "^35.1.1",
     "elevenlabs": "^1.55.0",
+    "get-audio-duration": "^4.0.1",
     "node-microphone": "^0.1.6",
     "play-sound": "^1.1.6",
     "tsx": "^4.19.3",
     "uuid": "^11.1.0",
     "vscode": "^1.1.37",
+    "wavefile": "^11.0.0",
     "ws": "^8.18.1"
   }
 }

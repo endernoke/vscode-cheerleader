@@ -93,8 +93,11 @@ export interface ActionResponse {
 }
 
 /**
- * Handles the inline chat functionality with the AI, combining
- * both the interaction pipeline and action processing
+ * Alas the wanders of the wild reached the promised land, where the great Kingdom of
+ * George was to be established. The land was bountiful and prosperous, GPU grew like
+ * apples on trees, and even the proletariat had a MacBook. But above all, the people
+ * could chat with the Cheerleader anytime they wanted, just a click away.
+ * -- The Georgeiste Manifesto, Chapter 1, Verse 6
  */
 class InlineChat {
     private isProcessing = false;
@@ -169,8 +172,6 @@ class InlineChat {
         
         try {
             this.isProcessing = true;
-            const statusBarItem = this.createStatusBarItem();
-            this.updateStatus(statusBarItem, "$(mic-filled) Recording...");
             
             // Record audio
             await AudioRecorder.startRecording();
@@ -183,17 +184,15 @@ class InlineChat {
             );
             
             if (!recordingPrompt) {
-                this.updateStatus(statusBarItem, "$(mic) Ask Cheerleader");
+                vscode.window.showInformationMessage("Recording cancelled");
                 return;
             }
             
             // Stop recording and get audio data
-            this.updateStatus(statusBarItem, "$(sync~spin) Processing audio...");
             const recordingResult = AudioRecorder.stopRecording(false);
             
             if (recordingResult.buffer.length === 0) {
                 vscode.window.showWarningMessage("No audio was recorded");
-                this.updateStatus(statusBarItem, "$(mic) Ask Cheerleader");
                 return;
             }
             
@@ -211,8 +210,6 @@ class InlineChat {
                 // Show transcription
                 vscode.window.showInformationMessage(`You said: ${transcription}`);
                 
-                this.updateStatus(statusBarItem, "$(hubot) Thinking...");
-                
                 // Get file content
                 const fileContent = editor.document.getText();
                 
@@ -228,7 +225,6 @@ class InlineChat {
                 // Handle text-to-speech for conversation actions
                 const conversationActions = actions.filter(a => a.type === 'conversation');
                 if (conversationActions.length > 0) {
-                    this.updateStatus(statusBarItem, "$(megaphone) Speaking...");
                     await playTextToSpeech(conversationActions[0].content);
                     vscode.window.showInformationMessage(`Cheerleader: ${conversationActions[0].content}`);
                 }
@@ -244,7 +240,6 @@ class InlineChat {
                 } catch (cleanupError) {
                     console.error("Error cleaning up temporary file:", cleanupError);
                 }
-                this.updateStatus(statusBarItem, "$(mic) Ask Cheerleader");
             }
             
         } catch (error) {
@@ -254,20 +249,6 @@ class InlineChat {
         } finally {
             this.isProcessing = false;
         }
-    }
-    
-    private createStatusBarItem(): vscode.StatusBarItem {
-        const statusBarItem = vscode.window.createStatusBarItem(
-            vscode.StatusBarAlignment.Right,
-            1000
-        );
-        statusBarItem.text = '$(mic) Ask Cheerleader';
-        statusBarItem.show();
-        return statusBarItem;
-    }
-    
-    private updateStatus(statusBarItem: vscode.StatusBarItem, text: string): void {
-        statusBarItem.text = text;
     }
     
     /**
@@ -460,15 +441,4 @@ export function registerInlineChatCommand(context: vscode.ExtensionContext): voi
     
     context.subscriptions.push(textCommand, voiceCommand);
     
-    // Create status bar item for voice interaction
-    const statusBar = vscode.window.createStatusBarItem(
-        vscode.StatusBarAlignment.Right,
-        1000
-    );
-    statusBar.command = 'cheerleader.inlineChatVoice';
-    statusBar.text = '$(mic) Ask Cheerleader';
-    statusBar.tooltip = 'Speak to your coding companion';
-    statusBar.show();
-    
-    context.subscriptions.push(statusBar);
 }
