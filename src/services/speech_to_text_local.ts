@@ -1,180 +1,103 @@
-import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as path from 'path';
-import { EventEmitter } from 'events';
+import { pipeline } from '@huggingface/transformers';
+import { WaveFile } from 'wavefile';
+import * as dotenv from 'dotenv';
+import path from 'path';
 
-// Need to use require for these modules as they don't have TypeScript definitions
-const vosk = require('vosk');
-const mic = require('mic');
+dotenv.config({
+  path: path.resolve(__dirname, "../../.env"),
+});
 
-export class SpeechToTextService {
-    private model: any;
-    private recognizer: any;
-    private micInstance: any;
-    private micInputStream: any;
-    private eventEmitter: EventEmitter = new EventEmitter();
-
-    // Constants
-    private readonly SAMPLE_RATE = 16000;
-    private readonly MODEL_PATH: string;
-    
-    isListening: boolean = false;
-
-    constructor(context: vscode.ExtensionContext) {
-        // Model path should be within extension directory
-        this.MODEL_PATH = path.join(context.extensionPath, 'model');
-    }
-
-    /**
-     * Start speech recognition
-     */
-    public async startListening(): Promise<void> {
-        if (this.isListening) {
-            return;
-        }
-
-        try {
-            // Check if model exists
-            if (!fs.existsSync(this.MODEL_PATH)) {
-                vscode.window.showErrorMessage(
-                    'Speech recognition model not found. Please download the model from ' +
-                    'https://alphacephei.com/vosk/models and extract it to the "model" folder in the extension directory.'
-                );
-                return;
-            }
-
-            // Initialize Vosk
-            vosk.setLogLevel(0);
-            this.model = new vosk.Model(this.MODEL_PATH);
-            this.recognizer = new vosk.Recognizer({ model: this.model, sampleRate: this.SAMPLE_RATE });
-
-            // Initialize microphone
-            this.micInstance = mic({
-                rate: String(this.SAMPLE_RATE),
-                channels: '1',
-                debug: false,
-                device: 'default',
-            });
-
-            this.micInputStream = this.micInstance.getAudioStream();
-
-            // Handle audio data
-            this.micInputStream.on('data', (data: Buffer) => {
-                if (this.recognizer.acceptWaveform(data)) {
-                    // Complete recognition result
-                    const result = this.recognizer.result();
-                    if (result && result.text) {
-                        this.eventEmitter.emit('finalRecognition', result.text);
-                        vscode.window.showInformationMessage(`Recognized: ${result.text}`);
-                    }
-                } else {
-                    // Partial recognition result
-                    const partial = this.recognizer.partialResult();
-                    if (partial && partial.partial) {
-                        this.eventEmitter.emit('partialRecognition', partial.partial);
-                    }
-                }
-            });
-
-            // Handle when audio processing is complete
-            this.micInputStream.on('audioProcessExitComplete', () => {
-                const finalResult = this.recognizer.finalResult();
-                if (finalResult && finalResult.text) {
-                    this.eventEmitter.emit('finalRecognition', finalResult.text);
-                }
-                this.cleanup();
-            });
-
-            // Start the microphone
-            this.micInstance.start();
-            this.isListening = true;
-            vscode.window.showInformationMessage('Speech recognition started. Start speaking...');
-
-        } catch (error) {
-            vscode.window.showErrorMessage(`Failed to start speech recognition: ${error}`);
-            this.cleanup();
-        }
-    }
-
-    /**
-     * Stop speech recognition
-     */
-    public stopListening(): void {
-        if (!this.isListening) {
-            return;
-        }
-
-        try {
-            this.micInstance.stop();
-            vscode.window.showInformationMessage('Speech recognition stopped.');
-        } catch (error) {
-            vscode.window.showErrorMessage(`Error stopping speech recognition: ${error}`);
-        } finally {
-            this.cleanup();
-        }
-    }
-
-    /**
-     * Clean up resources
-     */
-    private cleanup(): void {
-        if (this.recognizer) {
-            this.recognizer.free();
-            this.recognizer = null;
-        }
-
-        if (this.model) {
-            this.model.free();
-            this.model = null;
-        }
-
-        this.isListening = false;
-    }
-
-    /**
-     * Register an event listener
-     */
-    public on(event: 'finalRecognition' | 'partialRecognition', listener: (text: string) => void): void {
-        this.eventEmitter.on(event, listener);
-    }
+/**
+ * Convert an audio file to text using Hugging Face's Whisper model
+ * @param audioData Buffer containing the WAV audio data to transcribe
+ * @returns Promise with the transcribed text
+ * @throws Error if the transcription fails
+ * @example
+ * const audioBuffer = fs.readFileSync('path/to/audio.wav');
+ * const text = await transcribe_api(audioBuffer);
+ * console.log(text); // Transcribed text
+ */
+async function transcribe_api(audioData: Buffer) {
+    const response = await fetch(
+      "https://router.huggingface.co/hf-inference/models/openai/whisper-small",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+          "Content-Type": "audio/wav",
+        },
+        method: "POST",
+        body: audioData,
+      }
+    );
+    const result = await response.json();
+    return result;
 }
 
 /**
- * Register speech to text commands in VS Code
+ * Convert an audio file to text using Hugging Face's Whisper model
+ * Exact same function as transcribe_api but using local pipeline
+ * Requires installation of the transformers.js library
  */
-export function registerSpeechToTextCommand(context: vscode.ExtensionContext): void {
-    const speechService = new SpeechToTextService(context);
-    
-    // Create status bar item
-    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.text = "$(mic) Start Speech";
-    statusBarItem.command = 'vscode-cheerleader.toggleSpeechRecognition';
-    statusBarItem.show();
-    
-    context.subscriptions.push(statusBarItem);
-    
-    // Toggle speech recognition command
-    const toggleCommand = vscode.commands.registerCommand('vscode-cheerleader.toggleSpeechRecognition', async () => {
-        if (speechService.isListening) {
-            speechService.stopListening();
-            statusBarItem.text = "$(mic) Start Speech";
-        } else {
-            await speechService.startListening();
-            statusBarItem.text = "$(debug-stop) Stop Speech";
+async function transcribe_local(audioData: Buffer) {
+    const transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
+
+    // WARNING: GEORGE FORBIDS YOU FORM ATTEMPTING TO MODIFY THIS CODE
+    // This is a direct copy from the Hugging Face documentations
+    // Apparently it requires some weird manipulation of the audio data
+    // to work with the ASR pipeline, it will not work if you pass in raw audio buffer
+    let wav = new WaveFile(audioData);
+    wav.toBitDepth('32f');
+    wav.toSampleRate(16000);
+    let data = wav.getSamples();
+    if (Array.isArray(data)) {
+        if (data.length > 1) {
+            const SCALING_FACTOR = Math.sqrt(2);
+
+            // Merge channels (into first channel to save memory)
+            for (let i = 0; i < data[0].length; ++i) {
+                data[0][i] = SCALING_FACTOR * (data[0][i] + data[1][i]) / 2;
+            }
         }
-    });
-    
-    // Start speech recognition command
-    const startCommand = vscode.commands.registerCommand('vscode-cheerleader.startSpeechRecognition', async () => {
-        await speechService.startListening();
-        statusBarItem.text = "$(debug-stop) Stop Speech";
-    });
-    
-    // Stop speech recognition command
-    const stopCommand = vscode.commands.registerCommand('vscode-cheerleader.stopSpeechRecognition', () => {
-        speechService.stopListening();
-        statusBarItem.text = "$(mic) Start Speech";
-    });
-    
-    context.subscriptions.push(toggleCommand, startCommand, stopCommand);
+
+        // Select first channel
+        data = data[0];
+    }
+
+    let output = transcriber(data);
+    return output;
 }
+
+/**
+ * Convert an audio file to text using Hugging Face's Whisper model
+ * @param audioFilePath Path to the WAV audio file to transcribe
+ * @returns Promise with the transcribed text
+ * @note This is different from the convertSpeechToText function using ElevenLabs API
+ */
+export const convertSpeechToText = async (
+  audioFilePath: string
+): Promise<string> => {
+  try {
+    console.log(`Starting local speech-to-text conversion for file: ${audioFilePath}`);
+
+    const audioData = fs.readFileSync(audioFilePath);
+    let start = performance.now();
+    const result = await transcribe_api(audioData);
+    let end = performance.now();
+    console.log(`Time taken: ${end - start} ms`);
+
+    // if (result.error) {
+    //   throw new Error(`Hugging Face API error: ${result.error}`);
+    // }
+
+    console.log("Local speech-to-text conversion completed successfully");
+    return result.text || '';
+  } catch (error) {
+    console.error("Error in local speech-to-text service:", error);
+    throw error;
+  }
+};
+
+// convertSpeechToTextLocal("../../recordings/test.wav").then((text) => {
+//   console.log("Transcribed text:", text);
+// });

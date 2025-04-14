@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { activateOverlay } from "./overlay";
-import { activateVoice } from "./services/play_voice";
+import { activateTTS } from "./services/play_voice";
 import { registerAudioCommands } from "./services/record_speech";
 import { registerVoiceInteractionCommands } from "./copilot-wrapper/voice_pipeline";
 import { registerInlineChatCommand } from "./copilot-wrapper/inline_chat";
@@ -12,7 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
   activateOverlay(context);
 
   // Then activate features that may use WebSocket
-  activateVoice(context);
+  activateTTS(context);
   registerAudioCommands(context);
   registerVoiceInteractionCommands(context);
   registerInlineChatCommand(context);

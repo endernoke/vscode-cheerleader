@@ -130,12 +130,12 @@ export const playTextToSpeech = async (text: string, duration?: number): Promise
   }
 };
 
-export function activateVoice(context: vscode.ExtensionContext) {
+export function activateTTS(context: vscode.ExtensionContext) {
   // Initialize SoundPlayer with context
   SoundPlayer.initialize(context);
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("cheerleader.testVoice", async () => {
+    vscode.commands.registerCommand("cheerleader.testTTS", async () => {
       try {
         const text = await vscode.window.showInputBox({
           prompt: "Enter text to convert to speech",
