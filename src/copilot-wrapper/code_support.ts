@@ -23,7 +23,7 @@ interface CodeReviewResponse {
  * and help them find their way back to the Garden of Vim. With voice and action, 
  * with concrete feedback and personalized comments, CodeSupport shall point them to
  * the promised land whenever they save them file or change focus.
- * -- The Georgeiste Manifesto, Chapter 2, Verse 2
+ * -- The Georgeiste Manifesto, Chapter 2, Verse 3
  */
 export class CodeSupport {
     private static statusBarItem: vscode.StatusBarItem;
@@ -63,13 +63,13 @@ export class CodeSupport {
 
             Focus on:
             1. Code clarity and documentation needs
-            2. Potential improvements
-            3. Best practices
-            4. Security considerations
+            2. Best practices
+            3. Security considerations
 
             Be concise and to the point. Respond only with JSON. Your comment should be
             in proper code syntax such as "# comment" for Python. Only maximum 5 suggestions
-            are allowed per file.
+            are allowed per file. You should respond with no comments and only a compliment
+            in the summary if you think the code is already good.
 
             File: ${fileName}
             

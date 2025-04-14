@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as fs from 'fs';
 import * as path from 'path';
 import { AudioRecorder } from '../services/record_speech';
-import { convertSpeechToText } from '../services/speech_to_text';
+import { convertSpeechToText } from '../services/speech_to_text_local';
 import { getAIResponse } from '../services/language_model';
 import { playTextToSpeech } from '../services/play_voice';
 import { v4 as uuid } from 'uuid';
@@ -20,7 +20,7 @@ export interface VoicePipelineOptions {
  * pitied the CS majors, and thus delegated the great duty of creating the pipeline to Copilot,
  * the Earl of Vibe. "Fear not, my faithful followers," George said, "for I shall deliver
  * you from evil and grant you the ease to interact with the Cheerleader."
- * -- The Georgeiste Manifesto, Chapter 1, Verse 5
+ * -- The Georgeiste Manifesto, Chapter 1, Verse 4
  */
 export class VoiceInteractionPipeline {
     private static isProcessing: boolean = false;
@@ -33,18 +33,6 @@ export class VoiceInteractionPipeline {
         if (!fs.existsSync(this.recordingsDir)) {
             fs.mkdirSync(this.recordingsDir, { recursive: true });
         }
-        
-        // Create status bar item
-        this.statusBarItem = vscode.window.createStatusBarItem(
-            vscode.StatusBarAlignment.Right,
-            1000
-        );
-        this.statusBarItem.command = 'cheerleader.startVoiceInteraction';
-        this.statusBarItem.text = '$(mic) Ask Cheerleader';
-        this.statusBarItem.tooltip = 'Speak to your coding companion';
-        this.statusBarItem.show();
-        
-        return this.statusBarItem;
     }
     
     /**
@@ -161,8 +149,7 @@ export class VoiceInteractionPipeline {
 
 export function registerVoiceInteractionCommands(context: vscode.ExtensionContext) {
     // Initialize pipeline
-    const statusBar = VoiceInteractionPipeline.initialize(context);
-    context.subscriptions.push(statusBar);
+    VoiceInteractionPipeline.initialize(context);
     
     // Register command
     const command = vscode.commands.registerCommand(
