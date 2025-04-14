@@ -54,6 +54,11 @@ export class WebSocketService {
     }
   }
 
+  /**
+   * Activate the Live2D character's speech animation
+   * @param text The text to be spoken
+   * @param duration The duration of the speech animation in milliseconds
+   */
   startSpeak(text: string, duration: number = 3000) {
     this.sendMessage('startSpeak', { text, duration });
   }

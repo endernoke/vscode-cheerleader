@@ -31,6 +31,11 @@ async function transcribe_api(audioData: Buffer) {
       }
     );
     const result = await response.json();
+
+    if (result.error) {
+        throw new Error(`Hugging Face API error: ${result.error}`);
+    }
+
     return result;
 }
 
@@ -71,24 +76,24 @@ async function transcribe_local(audioData: Buffer) {
 /**
  * Convert an audio file to text using Hugging Face's Whisper model
  * @param audioFilePath Path to the WAV audio file to transcribe
+ * @param useLocal Whether to use the local pipeline or the API
  * @returns Promise with the transcribed text
  * @note This is different from the convertSpeechToText function using ElevenLabs API
+ * We have experimentally determined that the Inference API is faster than local on CPU.
+ * Inference API: 157 ms vs local: 2.16s, thus the default option goes with the API
  */
 export const convertSpeechToText = async (
-  audioFilePath: string
+  audioFilePath: string,
+  useLocal: boolean = false
 ): Promise<string> => {
   try {
     console.log(`Starting local speech-to-text conversion for file: ${audioFilePath}`);
 
     const audioData = fs.readFileSync(audioFilePath);
-    let start = performance.now();
-    const result = await transcribe_api(audioData);
-    let end = performance.now();
-    console.log(`Time taken: ${end - start} ms`);
-
-    // if (result.error) {
-    //   throw new Error(`Hugging Face API error: ${result.error}`);
-    // }
+    // let start = performance.now();
+    const result = await (useLocal ? transcribe_local(audioData) : transcribe_api(audioData));
+    // let end = performance.now();
+    // console.log(`Time taken: ${end - start} ms`);
 
     console.log("Local speech-to-text conversion completed successfully");
     return result.text || '';
