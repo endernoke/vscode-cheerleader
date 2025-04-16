@@ -6,6 +6,7 @@ import { registerVoiceInteractionCommands } from "./copilot-wrapper/voice_pipeli
 import { registerInlineChatCommand } from "./copilot-wrapper/inline_chat";
 import { registerCodeSupportCommands } from "./copilot-wrapper/code_support";
 import { WebSocketService } from "./services/websocket_service";
+import { registerMonitoringCommand } from "./services/tracker";
 
 export function activate(context: vscode.ExtensionContext) {
   // Activate core features first
@@ -17,6 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerVoiceInteractionCommands(context);
   registerInlineChatCommand(context);
   registerCodeSupportCommands(context);
+  registerMonitoringCommand(context);
 
   // Add disposal of WebSocket service
   context.subscriptions.push(

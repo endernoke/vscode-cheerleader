@@ -67,6 +67,32 @@ export class SoundPlayer {
   }
 }
 
+export const playAudioFromFile = async (filePath: string, displayText: string | null = null): Promise<void> => {
+  if (!SoundPlayer.context) {
+    throw new Error("SoundPlayer not initialized with extension context");
+  }
+  const webSocketService = WebSocketService.getInstance();
+  try {
+    const audioDuration = await getAudioDurationInSeconds(filePath);
+    const durationMs = Math.ceil(audioDuration * 1000);
+
+    // Start Live2D character's speech animation
+    webSocketService.startSpeak(displayText ?? "Speaking...", durationMs);
+
+    await SoundPlayer.playFile(filePath);
+  } catch (error) {
+    console.error("Audio playback error:", error);
+    vscode.window.showErrorMessage(
+      `Failed to play audio: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  } finally {
+    // Stop Live2D character's speech animation
+    webSocketService.stopSpeak();
+  }
+};
+
 /**
  * Converts text to speech and plays it using the SoundPlayer.
  * @param text The text to convert to speech.
