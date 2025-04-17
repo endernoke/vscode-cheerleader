@@ -6,6 +6,9 @@
   "engines": {
     "vscode": "^1.98.0"
   },
+  "files": [
+    "assets/**"
+  ],
   "categories": [
     "Themes",
     "AI",
@@ -63,6 +66,11 @@
         "title": "Review Code with Cheerleader",
         "category": "Cheerleader",
         "icon": "$(eye)"
+      },
+      {
+        "command": "cheerleader.toggleMonitoringRotting",
+        "title": "Toggle Monitoring Rotting",
+        "category": "Cheerleader"
       }
     ],
     "menus": {},
