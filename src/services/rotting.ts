@@ -5,6 +5,8 @@ import type { Result } from "get-windows";
 function isProductive(result: Result): boolean {
   const productiveApps = [
     "Visual Studio Code",
+    "Code",
+    "iTerm2",
     "Terminal",
     "Firefox",
     "Notion",
@@ -83,7 +85,7 @@ async function monitorRotting() {
     const audioFilePath = vscode.Uri.file(
       `${globalContext.extensionUri.fsPath}/assets/${fileName}`
     ).fsPath;
-    await playAudioFromFile(audioFilePath, text, 7);
+    await playAudioFromFile(audioFilePath, text, 10);
   }
   
   globalContext.globalState.update("lastProductiveState", currentProductiveState);
