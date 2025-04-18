@@ -57,7 +57,7 @@ export function activateOverlay(context: vscode.ExtensionContext) {
     webSocketService.close();
   };
 
-  const overlayAppPath = path.join(__dirname, "..", "live2d-container");
+  const overlayAppPath = path.join(__dirname, "..", "live2d-container").replace(/\\/g, "/");  // Always use forward slashes for paths to avoid issues on Windows
   if (!fs.existsSync(overlayAppPath)) {
     vscode.window.showErrorMessage(
       "Overlay app not found at " + overlayAppPath

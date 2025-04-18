@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import player from "play-sound";
+import windowsAudioPlayer from "./play_sound_windows";
 import { existsSync } from "fs";
 import fs from "fs";
 import { v4 as uuid } from "uuid";
@@ -27,39 +28,67 @@ export class SoundPlayer {
       return;
     }
 
-    return new Promise((resolve, reject) => {
-      try {
-        this.isPlaying = true;
+    if (process.platform !== "win32") {
+      return new Promise((resolve, reject) => {
+        try {
+          this.isPlaying = true;
 
-        if (!existsSync(filePath)) {
+          if (!existsSync(filePath)) {
+            this.isPlaying = false;
+            reject(new Error(`Audio file not found: ${filePath}`));
+            return;
+          }
+
+          const audio = this.audioPlayer.play(filePath, (err) => {
+            this.isPlaying = false;
+            if (err) {
+              console.error("Error playing audio:", err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+
+          // Handle potential player-specific errors
+          if (audio && typeof audio.on === "function") {
+            audio.on("error", (err: any) => {
+              this.isPlaying = false;
+              console.error("Player error:", err);
+              reject(err);
+            });
+          }
+        } catch (error) {
           this.isPlaying = false;
-          reject(new Error(`Audio file not found: ${filePath}`));
-          return;
+          reject(error);
         }
+      });
+    }
+    else {
+      // For Windows, use the custom player
+      return new Promise((resolve, reject) => {
+        try {
+          this.isPlaying = true;
 
-        const audio = this.audioPlayer.play(filePath, (err) => {
-          this.isPlaying = false;
-          if (err) {
+          if (!existsSync(filePath)) {
+            this.isPlaying = false;
+            reject(new Error(`Audio file not found: ${filePath}`));
+            return;
+          }
+
+          windowsAudioPlayer.play(filePath).then(() => {
+            this.isPlaying = false;
+            resolve();
+          }).catch((err: Error) => {
+            this.isPlaying = false;
             console.error("Error playing audio:", err);
             reject(err);
-          } else {
-            resolve();
-          }
-        });
-
-        // Handle potential player-specific errors
-        if (audio && typeof audio.on === "function") {
-          audio.on("error", (err: any) => {
-            this.isPlaying = false;
-            console.error("Player error:", err);
-            reject(err);
           });
+        } catch (error) {
+          this.isPlaying = false;
+          reject(error);
         }
-      } catch (error) {
-        this.isPlaying = false;
-        reject(error);
-      }
-    });
+      });
+    }
   }
 
   static isAudioPlaying(): boolean {

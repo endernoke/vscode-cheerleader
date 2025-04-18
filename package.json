@@ -116,14 +116,14 @@
     "@types/node": "20.x",
     "@types/node-microphone": "^0.1.4",
     "@types/play-sound": "^1.1.2",
-    "@types/vscode": "^1.98.0",
-    "@types/ws": "^8.18.0",
-    "@typescript-eslint/eslint-plugin": "^8.25.0",
-    "@typescript-eslint/parser": "^8.25.0",
+    "@types/vscode": "^1.54.0",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
-    "eslint": "^9.21.0",
-    "typescript": "^5.7.3"
+    "eslint": "^9.23.0",
+    "typescript": "^5.8.2"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.4.2",
@@ -137,7 +137,6 @@
     "play-sound": "^1.1.6",
     "tsx": "^4.19.3",
     "uuid": "^11.1.0",
-    "vscode": "^1.1.37",
     "wavefile": "^11.0.0",
     "ws": "^8.18.1"
   }
