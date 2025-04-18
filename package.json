@@ -41,6 +41,11 @@
         "category": "Testing"
       },
       {
+        "command": "cheerleader.testEncouragement",
+        "title": "Test Encouragement Module",
+        "category": "Testing"
+      },
+      {
         "command": "cheerleader.startRecording",
         "title": "Start Voice Recording",
         "category": "Testing"
@@ -68,6 +73,18 @@
         "icon": "$(eye)"
       },
       {
+        "command": "cheerleader.enableEncouragement",
+        "title": "Enable Coding Encouragement",
+        "category": "Cheerleader",
+        "icon": "$(megaphone)"
+      },
+      {
+        "command": "cheerleader.disableEncouragement",
+        "title": "Disable Coding Encouragement",
+        "category": "Cheerleader",
+        "icon": "$(mute)"
+      },
+      {
         "command": "cheerleader.toggleMonitoringRotting",
         "title": "Toggle Monitoring Rotting",
         "category": "Cheerleader"
@@ -86,6 +103,22 @@
         "mac": "cmd+shift+c"
       }
     ],
+    "configuration": {
+      "title": "Cheerleader",
+      "properties": {
+        "cheerleader.encouragement.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable automated encouragement messages"
+        },
+        "cheerleader.encouragement.frequency": {
+          "type": "string",
+          "enum": ["low", "medium", "high"],
+          "default": "medium",
+          "description": "How frequently encouragement messages are shown"
+        }
+      }
+    },
     "chatParticipants": [
       {
         "id": "cheerleader.chat",

@@ -83,7 +83,7 @@ async function monitorRotting() {
     const audioFileEntries = Object.entries(audioFiles);
     const [fileName, text] = audioFileEntries[Math.floor(Math.random() * audioFileEntries.length)];
     const audioFilePath = vscode.Uri.file(
-      `${globalContext.extensionUri.fsPath}/assets/${fileName}`
+      `${globalContext.extensionUri.fsPath}/assets/rotting/${fileName}`
     ).fsPath;
     await playAudioFromFile(audioFilePath, text, 10);
   }

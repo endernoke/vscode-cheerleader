@@ -6,6 +6,7 @@ import { registerVoiceInteractionCommands } from "./copilot-wrapper/voice_pipeli
 import { registerInlineChatCommand } from "./copilot-wrapper/inline_chat";
 import { registerCodeSupportCommands } from "./copilot-wrapper/code_support";
 import { WebSocketService } from "./services/websocket_service";
+import { activateEncouragement } from "./services/encouragement_service";
 import { registerMonitoringCommand } from "./services/rotting";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -19,6 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerInlineChatCommand(context);
   registerCodeSupportCommands(context);
   registerMonitoringCommand(context);
+  activateEncouragement(context);
 
   // Add disposal of WebSocket service
   context.subscriptions.push(
