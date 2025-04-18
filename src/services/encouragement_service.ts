@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { playTextToSpeech } from "./play_voice";
+import { playTextToSpeech, playPrerecordedAudio } from "./play_voice";
 import { WebSocketService } from "./websocket_service";
 
 export class EncouragementService {
@@ -17,59 +17,166 @@ export class EncouragementService {
 
   private encouragementMessages = {
     coding: [
-      "You're on fire! Keep up the great work!",
-      "Look at that code flow! You're in the zone!",
-      "Your coding rhythm is impressive today!",
-      "Those are some elegant solutions you're writing!",
-      "Keep going! Your progress is awesome!"
+      {
+        filename: "coding0.mp3",
+        text: "You're on fire! Keep up the great work!"
+      },
+      {
+        filename: "coding1.mp3",
+        text: "Look at that code flow! You're in the zone!"
+      },
+      {
+        filename: "coding2.mp3",
+        text: "You're making great progress! Keep it up!"
+      },
+      {
+        filename: "coding3.mp3",
+        text: "Keep going! Your progress is awesome!"
+      }
     ],
     buildSuccess: [
-      "Build successful! Everything is working perfectly!",
-      "Great job! Your code compiled without any issues!",
-      "Success! Your build is ready to go!",
-      "Nice work! Build completed successfully!"
+      {
+        filename: "buildSuccess0.mp3",
+        text: "Build successful! Everything is working perfectly!"
+      },
+      {
+        filename: "buildSuccess1.mp3",
+        text: "Great job! Your code compiled without any issues!"
+      },
+      {
+        filename: "buildSuccess2.mp3",
+        text: "Success! Your build is ready to go!"
+      },
+      {
+        filename: "buildSuccess3.mp3",
+        text: "Nice work! Build completed successfully!"
+      }
     ],
     buildFailed: [
-      "Don't worry about that build failure, you'll figure it out!",
-      "Errors are just puzzles waiting to be solved. You've got this!",
-      "Every bug is a learning opportunity. Keep at it!",
-      "Build failed? No problem! I believe in your debugging skills!"
+      {
+        filename: "buildFailed0.mp3",
+        text: "Don't worry about that build failure, you'll figure it out!"
+      },
+      {
+        filename: "buildFailed1.mp3",
+        text: "Errors are just puzzles waiting to be solved. You've got this!"
+      },
+      {
+        filename: "buildFailed2.mp3",
+        text: "Every bug is a learning opportunity. Keep at it!"
+      },
+      {
+        filename: "buildFailed3.mp3",
+        text: "Build failed? No problem! I believe in your debugging skills!"
+      }
     ],
     testSuccess: [
-      "All tests passed! Your code is solid!",
-      "Perfect test run! You're crushing it today!",
-      "Tests looking great! What a satisfying green check!",
-      "Test success! Your attention to detail is paying off!"
+      {
+        filename: "testSuccess0.mp3",
+        text: "All tests passed! Your code is solid!"
+      },
+      {
+        filename: "testSuccess1.mp3",
+        text: "Perfect test run! You're crushing it today!"
+      },
+      {
+        filename: "testSuccess2.mp3",
+        text: "Tests looking great! What a satisfying green check!"
+      },
+      {
+        filename: "testSuccess3.mp3",
+        text: "Test success! Your attention to detail is paying off!"
+      }
     ],
     testFailed: [
-      "Those failing tests are just pointing you in the right direction!",
-      "Test failures happen to the best of us. You'll solve it soon!",
-      "Every failing test brings you closer to perfect code!",
-      "Don't let those test failures discourage you. You're making progress!"
+      {
+        filename: "testFailed0.mp3",
+        text: "Those failing tests are just pointing you in the right direction!"
+      },
+      {
+        filename: "testFailed1.mp3",
+        text: "Test failures happen to the best of us. You'll solve it soon!"
+      },
+      {
+        filename: "testFailed2.mp3",
+        text: "Every failing test brings you closer to perfect code!"
+      },
+      {
+        filename: "testFailed3.mp3",
+        text: "Don't let those test failures discourage you. You're making progress!"
+      }
     ],
     fileSaved: [
-      "Nice save! Your work is coming along nicely!",
-      "Progress saved! One step closer to completion!",
-      "Great checkpoint! Your code is evolving well!",
-      "Save successful! Keep up the momentum!"
+      {
+        filename: "fileSaved0.mp3",
+        text: "Nice save! Your work is coming along nicely!"
+      },
+      {
+        filename: "fileSaved1.mp3",
+        text: "Progress saved! One step closer to completion!"
+      },
+      {
+        filename: "fileSaved2.mp3",
+        text: "Great checkpoint! Your code is evolving well!"
+      },
+      {
+        filename: "fileSaved3.mp3",
+        text: "Save successful! Keep up the momentum!"
+      }
     ],
     longCoding: [
-      "Wow, you've been coding for a while now! How about a quick stretch?",
-      "Your dedication is impressive! Remember to take short breaks occasionally!",
-      "You're really focused today! Don't forget to rest your eyes from time to time!",
-      "Amazing concentration! A quick water break might help keep your mind sharp!"
+      {
+        filename: "longCoding0.mp3",
+        text: "Wow, you've been coding for a while now! How about a quick stretch?"
+      },
+      {
+        filename: "longCoding1.mp3",
+        text: "Your dedication is impressive! Remember to take short breaks occasionally!"
+      },
+      {
+        filename: "longCoding2.mp3",
+        text: "You're really focused today! Don't forget to rest your eyes from time to time!"
+      },
+      {
+        filename: "longCoding3.mp3",
+        text: "Amazing concentration! A quick water break might help keep your mind sharp!"
+      }
     ],
     returningAfterBreak: [
-      "Welcome back! Ready to continue your awesome work?",
-      "Nice to see you again! Your project missed you!",
-      "Refreshed and ready to code? Let's do this!",
-      "Back to coding? I knew you couldn't stay away for long!"
+      {
+        filename: "returningAfterBreak0.mp3",
+        text: "Welcome back! Ready to continue your awesome work?"
+      },
+      {
+        filename: "returningAfterBreak1.mp3",
+        text: "Nice to see you again! Your project missed you!"
+      },
+      {
+        filename: "returningAfterBreak2.mp3",
+        text: "Refreshed and ready to code? Let's do this!"
+      },
+      {
+        filename: "returningAfterBreak3.mp3",
+        text: "Back to coding? I knew you couldn't stay away for long!"
+      }
     ],
     contextSwitch: [
-      "Switching tasks? Your versatility is impressive!",
-      "New file, new opportunities to write great code!",
-      "Multitasking like a pro! You handle context switching so well!",
-      "Changing focus? Your adaptability makes you an excellent developer!"
+      {
+        filename: "contextSwitch0.mp3",
+        text: "Switching tasks? Your versatility is impressive!"
+      },
+      {
+        filename: "contextSwitch1.mp3",
+        text: "New file, new opportunities to write great code!"
+      },
+      {
+        filename: "contextSwitch2.mp3",
+        text: "Multitasking like a pro! You handle context switching so well!"
+      },
+      {
+        filename: "contextSwitch3.mp3",
+        text: "Changing focus? Your adaptability makes you an excellent developer!"
+      }
     ]
   };
 
@@ -149,7 +256,7 @@ export class EncouragementService {
   /**
    * Main method to provide encouragement based on a specific event type
    */
-  private provideEncouragement(type: keyof typeof this.encouragementMessages): void {
+  provideEncouragement(type: keyof typeof this.encouragementMessages): void {
     if (!this.isEnabled) return;
     
     const now = Date.now();
@@ -164,7 +271,8 @@ export class EncouragementService {
     this.lastEncouragementTime = now;
     
     try {
-      playTextToSpeech(randomMessage);
+      const fullFilePath = `${__dirname}/../../assets/encouragement/${randomMessage.filename}`;
+      playPrerecordedAudio(fullFilePath, randomMessage.text);
     } catch (error) {
       console.error("Error playing encouragement:", error);
     }
@@ -350,4 +458,11 @@ export function activateEncouragement(context: vscode.ExtensionContext): void {
     disableCommand,
     { dispose: () => service.dispose() }
   );
+
+  // Command to test encouragement
+  context.subscriptions.push(
+    vscode.commands.registerCommand('cheerleader.testEncouragement', () => {
+      service.provideEncouragement('coding');
+    }
+  ));
 }

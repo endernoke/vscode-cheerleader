@@ -163,6 +163,48 @@ export const playTextToSpeech = async (text: string): Promise<void> => {
   }
 };
 
+/**
+ * Plays a audio file using the SoundPlayer along with corresponding text transcription
+ * @param filename The path to the audio file to play.
+ * @param text The text to display while the audio is playing.
+ * @returns A promise that resolves when the audio is played.
+ */
+export const playPrerecordedAudio = async (filename: string, text: string): Promise<void> => {
+  if (!SoundPlayer.context) {
+    throw new Error("SoundPlayer not initialized with extension context");
+  }
+
+  if (!existsSync(filename)) {
+    throw new Error(`Audio file not found: ${filename}`);
+  }
+
+  const webSocketService = WebSocketService.getInstance();
+
+  try {
+    const audioDuration = await getAudioDurationInSeconds(filename);
+    const durationMs = Math.ceil(audioDuration * 1000);
+
+    // Start Live2D character's speech animation
+    webSocketService.startSpeak(text, durationMs);
+
+    try {
+      // Play the audio file
+      await SoundPlayer.playFile(filename);
+    } finally {
+      // Stop Live2D character's speech animation
+      webSocketService.stopSpeak();
+    }
+  } catch (error) {
+    webSocketService.stopSpeak(); // Ensure animation stops even if there's an error
+    console.error("play-prerecorded-audio error:", error);
+    vscode.window.showErrorMessage(
+      `Failed to play audio: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+};
+
 export function activateTTS(context: vscode.ExtensionContext) {
   // Initialize SoundPlayer with context
   SoundPlayer.initialize(context);

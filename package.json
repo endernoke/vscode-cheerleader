@@ -38,6 +38,11 @@
         "category": "Testing"
       },
       {
+        "command": "cheerleader.testEncouragement",
+        "title": "Test Encouragement Module",
+        "category": "Testing"
+      },
+      {
         "command": "cheerleader.startRecording",
         "title": "Start Voice Recording",
         "category": "Testing"
