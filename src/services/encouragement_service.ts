@@ -319,25 +319,28 @@ export class EncouragementService {
   /**
    * Responds to build task completions
    */
-  onTaskEnd(e: vscode.TaskEndEvent): void {
+  onTaskProcessEnd(e: vscode.TaskProcessEndEvent): void {
     this.lastActivity = Date.now();
-    
+
     // Check if it's a build task
-    if (e.execution.task.group === vscode.TaskGroup.Build) {
-      if (e.execution.task.name.toLowerCase().includes('error') || 
-          e.execution.task.name.toLowerCase().includes('fail')) {
-        this.provideEncouragement('buildFailed');
-      } else {
+    if (e.execution.task.group === vscode.TaskGroup.Build
+        || e.execution.task.group === vscode.TaskGroup.Rebuild
+        || e.execution.task.name.toLowerCase().includes('build')
+    ) {
+      if (e.exitCode === 0) {
         this.provideEncouragement('buildSuccess');
+      } else if (e.exitCode !== undefined) {
+        this.provideEncouragement('buildFailed');
       }
     }
     // Check if it's a test task
-    else if (e.execution.task.group === vscode.TaskGroup.Test) {
-      if (e.execution.task.name.toLowerCase().includes('error') || 
-          e.execution.task.name.toLowerCase().includes('fail')) {
-        this.provideEncouragement('testFailed');
-      } else {
+    else if (e.execution.task.group === vscode.TaskGroup.Test
+        || e.execution.task.name.toLowerCase().includes('test')
+    ) {
+      if (e.exitCode === 0) {
         this.provideEncouragement('testSuccess');
+      } else if (e.exitCode !== undefined) {
+        this.provideEncouragement('testFailed');
       }
     }
   }
@@ -413,8 +416,8 @@ export function activateEncouragement(context: vscode.ExtensionContext): void {
     (editor) => service.onEditorChange(editor)
   );
   
-  const taskEndListener = vscode.tasks.onDidEndTask(
-    (e) => service.onTaskEnd(e)
+  const taskEndListener = vscode.tasks.onDidEndTaskProcess(
+    (e) => service.onTaskProcessEnd(e)
   );
   
   // Listen for diagnostics changes (errors/warnings)
