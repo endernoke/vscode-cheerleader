@@ -6,6 +6,9 @@
   "engines": {
     "vscode": "^1.98.0"
   },
+  "files": [
+    "assets/**"
+  ],
   "categories": [
     "Themes",
     "AI",
@@ -80,6 +83,11 @@
         "title": "Disable Coding Encouragement",
         "category": "Cheerleader",
         "icon": "$(mute)"
+      },
+      {
+        "command": "cheerleader.toggleMonitoringRotting",
+        "title": "Toggle Monitoring Rotting",
+        "category": "Cheerleader"
       }
     ],
     "menus": {},
@@ -157,6 +165,7 @@
     "electron": "^35.1.1",
     "elevenlabs": "^1.55.0",
     "get-audio-duration": "^4.0.1",
+    "get-windows": "^9.2.0",
     "node-microphone": "^0.1.6",
     "play-sound": "^1.1.6",
     "tsx": "^4.19.3",

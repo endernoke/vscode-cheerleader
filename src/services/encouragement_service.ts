@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { playTextToSpeech, playPrerecordedAudio } from "./play_voice";
+import { playTextToSpeech, playAudioFromFile } from "./play_voice";
 import { WebSocketService } from "./websocket_service";
 
 export class EncouragementService {
@@ -14,6 +14,11 @@ export class EncouragementService {
   private inactivityCheckInterval: NodeJS.Timeout | undefined;
   private lastEncouragementTime: number = 0;
   private cooldownPeriod: number = 2 * 60 * 1000; // 2 minutes between encouragements
+  static context: vscode.ExtensionContext;
+
+  static initialize(context: vscode.ExtensionContext) {
+    this.context = context;
+  }
 
   private encouragementMessages = {
     coding: [
@@ -271,8 +276,10 @@ export class EncouragementService {
     this.lastEncouragementTime = now;
     
     try {
-      const fullFilePath = `${__dirname}/../../assets/encouragement/${randomMessage.filename}`;
-      playPrerecordedAudio(fullFilePath, randomMessage.text);
+      const fullFilePath = vscode.Uri.file(
+          `${EncouragementService.context.extensionUri.fsPath}/assets/encouragement/${randomMessage.filename}`
+        ).fsPath;
+      playAudioFromFile(fullFilePath, randomMessage.text);
     } catch (error) {
       console.error("Error playing encouragement:", error);
     }
@@ -401,6 +408,7 @@ export class EncouragementService {
  * Register event listeners and initialize encouragement service
  */
 export function activateEncouragement(context: vscode.ExtensionContext): void {
+  EncouragementService.initialize(context);
   const service = EncouragementService.getInstance();
   
   // Register event listeners
