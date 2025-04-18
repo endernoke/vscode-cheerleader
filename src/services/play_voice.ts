@@ -97,6 +97,46 @@ export class SoundPlayer {
 }
 
 /**
+ * Plays an audio file using the SoundPlayer.
+ * @param filePath The path to the audio file.
+ * @param displayText Optional text to display during playback.
+ * @param customDuration Optional custom duration **in seconds** for the audio.
+ *                     If not provided, the duration will be calculated from the audio file.
+ * @note Apologies for the confusion with seconds instead of ms here, it's for simpler manipulation below
+ * @returns A promise that resolves when the audio is played.
+ */
+export const playAudioFromFile = async (
+  filePath: string, 
+  displayText: string | null = null, 
+  customDuration: number | null = null
+): Promise<void> => {
+  if (!SoundPlayer.context) {
+    throw new Error("SoundPlayer not initialized with extension context");
+  }
+  const webSocketService = WebSocketService.getInstance();
+  try {
+
+    const audioDuration = customDuration ? customDuration : await getAudioDurationInSeconds(filePath)
+    const durationMs = Math.ceil(audioDuration * 1000);
+
+    // Start Live2D character's speech animation
+    webSocketService.startSpeak(displayText ?? "Speaking...", durationMs);
+
+    await SoundPlayer.playFile(filePath);
+  } catch (error) {
+    console.error("Audio playback error:", error);
+    vscode.window.showErrorMessage(
+      `Failed to play audio: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  } finally {
+    // Stop Live2D character's speech animation
+    webSocketService.stopSpeak();
+  }
+};
+
+/**
  * Converts text to speech and plays it using the SoundPlayer.
  * @param text The text to convert to speech.
  * @returns A promise that resolves when the audio is played.
