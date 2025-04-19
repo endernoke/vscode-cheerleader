@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { playTextToSpeech, playAudioFromFile } from "./play_voice";
+import { playAudioFromFile } from "./play_voice";
 import { WebSocketService } from "./websocket_service";
 
 export class EncouragementService {
@@ -440,21 +440,18 @@ export function activateEncouragement(context: vscode.ExtensionContext): void {
       }
     }
   );
-  
-  // Register commands to enable/disable encouragement
-  const enableCommand = vscode.commands.registerCommand(
-    'cheerleader.enableEncouragement',
+
+  const toggleCommand = vscode.commands.registerCommand(
+    'cheerleader.toggleEncouragement',
     () => {
-      service.enable();
-      vscode.window.showInformationMessage('Cheerleader encouragement enabled!');
-    }
-  );
-  
-  const disableCommand = vscode.commands.registerCommand(
-    'cheerleader.disableEncouragement',
-    () => {
-      service.disable();
-      vscode.window.showInformationMessage('Cheerleader encouragement disabled!');
+      const isEnabled = vscode.workspace.getConfiguration('cheerleader.encouragement').get('enabled', true);
+      if (isEnabled) {
+        service.disable();
+        vscode.window.showInformationMessage('Cheerleader encouragement disabled!');
+      } else {
+        service.enable();
+        vscode.window.showInformationMessage('Cheerleader encouragement enabled!');
+      }
     }
   );
   
@@ -465,8 +462,7 @@ export function activateEncouragement(context: vscode.ExtensionContext): void {
     editorChangeListener,
     taskEndListener,
     diagnosticsListener,
-    enableCommand,
-    disableCommand,
+    toggleCommand,
     { dispose: () => service.dispose() }
   );
 

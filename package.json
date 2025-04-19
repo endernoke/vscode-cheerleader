@@ -73,16 +73,9 @@
         "icon": "$(eye)"
       },
       {
-        "command": "cheerleader.enableEncouragement",
-        "title": "Enable Coding Encouragement",
-        "category": "Cheerleader",
-        "icon": "$(megaphone)"
-      },
-      {
-        "command": "cheerleader.disableEncouragement",
-        "title": "Disable Coding Encouragement",
-        "category": "Cheerleader",
-        "icon": "$(mute)"
+        "command": "cheerleader.toggleEncouragement",
+        "title": "Toggle Coding Encouragement",
+        "category": "Cheerleader"
       },
       {
         "command": "cheerleader.toggleMonitoringRotting",
@@ -103,6 +96,25 @@
         "mac": "cmd+shift+c"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cheerleader-sidebar",
+          "title": "Cheerleader",
+          "icon": "assets/cheerleader.svg"
+        }
+      ]
+    },
+    "views": {
+      "cheerleader-sidebar": [
+        {
+          "id": "cheerleader-controls",
+          "name": "Controls",
+          "type": "webview",
+          "icon": "assets/cheerleader.svg"
+        }
+      ]
+    },
     "configuration": {
       "title": "Cheerleader",
       "properties": {
@@ -116,6 +128,11 @@
           "enum": ["low", "medium", "high"],
           "default": "medium",
           "description": "How frequently encouragement messages are shown"
+        },
+        "cheerleader.productivity.monitoringEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable/disable productivity monitoring"
         }
       }
     },

@@ -8,10 +8,12 @@ import { registerCodeSupportCommands } from "./copilot-wrapper/code_support";
 import { WebSocketService } from "./services/websocket_service";
 import { activateEncouragement } from "./services/encouragement_service";
 import { registerMonitoringCommand } from "./services/rotting";
+import { activateSidebar } from "./sidebar";
 
 export function activate(context: vscode.ExtensionContext) {
   // Activate core features first
   activateOverlay(context);
+  activateSidebar(context);
 
   // Then activate features that may use WebSocket
   activateTTS(context);
