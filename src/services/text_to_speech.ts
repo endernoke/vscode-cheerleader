@@ -1,27 +1,12 @@
-import * as dotenv from "dotenv";
-import { ElevenLabsClient } from "elevenlabs";
 import { createWriteStream } from "fs";
-import path from "path";
-
-dotenv.config({
-  path: path.resolve(__dirname, "../../.env"),
-});
-
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-
-if (!ELEVENLABS_API_KEY) {
-  throw new Error("Missing ELEVENLABS_API_KEY in environment variables");
-}
-
-const client = new ElevenLabsClient({
-  apiKey: ELEVENLABS_API_KEY,
-});
+import { ElevenLabsClient } from "elevenlabs";
+import { APIManager } from "./api_manager";
 
 /**
- * Convert an audio file to text using ElevenLabs speech-to-text API
- * @param audioFilePath Path to the audio file to transcribe
- * @param modelId Optional model ID to use for transcription
- * @returns Promise with the transcribed text
+ * Convert text to speech using ElevenLabs API and save to a file
+ * @param text The text to convert to speech
+ * @param filePath Path where to save the audio file
+ * @returns Promise with the file path of the saved audio
  * @note The voice ID we use is vGQNBgLaiM3EdZtxIiuY, called "Kawaii Aeristia"
  */
 export const createAudioFileFromText = async (
@@ -30,22 +15,24 @@ export const createAudioFileFromText = async (
 ): Promise<string> => {
   return new Promise<string>(async (resolve, reject) => {
     try {
+      const client = APIManager.getInstance().getClient<ElevenLabsClient>('elevenlabs');
+      
+      if (!client) {
+        throw new Error("ElevenLabs client is not initialized. Please set your API key in the sidebar.");
+      }
+
+      // const url = `https://api.elevenlabs.io/v1/text-to-speech/:vGQNBgLaiM3EdZtxIiuY`;
+
       const audio = await client.textToSpeech.convert("vGQNBgLaiM3EdZtxIiuY", {
         model_id: "eleven_flash_v2",
         text,
         output_format: "mp3_44100_128",
-        // voice_settings: {
-        //   stability: 0,
-        //   similarity_boost: 0,
-        //   use_speaker_boost: true,
-        //   speed: 1.0,
-        // },
       });
 
       const fileStream = createWriteStream(filePath);
 
       audio.pipe(fileStream);
-      fileStream.on("finish", () => resolve(filePath)); // Resolve with the fileName
+      fileStream.on("finish", () => resolve(filePath));
       fileStream.on("error", reject);
     } catch (error) {
       reject(error);
@@ -64,13 +51,18 @@ export const createAudioStreamFromText = async (
   console.log(`Starting TTS conversion for text: "${text.substring(0, 50)}..."`);
   
   try {
+    const client = APIManager.getInstance().getClient<ElevenLabsClient>('elevenlabs');
+    
+    if (!client) {
+      throw new Error("ElevenLabs client is not initialized. Please set your API key in the sidebar.");
+    }
+
     const audioStream = await client.textToSpeech.convertAsStream(
       "JBFqnCBsd6RMkjVDRZzb",
       {
         model_id: "eleven_multilingual_v2",
         text,
         output_format: "mp3_44100_128",
-        // Optional voice settings that allow you to customize the output
         voice_settings: {
           stability: 0,
           similarity_boost: 1.0,
@@ -97,6 +89,6 @@ export const createAudioStreamFromText = async (
     return content;
   } catch (error) {
     console.error("Error in TTS service:", error);
-    throw error; // Re-throw to be handled by the caller
+    throw error;
   }
 };
