@@ -1,21 +1,6 @@
-import * as dotenv from "dotenv";
-import { ElevenLabsClient } from "elevenlabs";
 import * as fs from "fs";
-import path from "path";
-
-dotenv.config({
-  path: path.resolve(__dirname, "../../.env"),
-});
-
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-
-if (!ELEVENLABS_API_KEY) {
-  throw new Error("Missing ELEVENLABS_API_KEY in environment variables");
-}
-
-const client = new ElevenLabsClient({
-  apiKey: ELEVENLABS_API_KEY,
-});
+import { ElevenLabsClient } from "elevenlabs";
+import { APIManager } from "./api_manager";
 
 /**
  * Convert an audio file to text using ElevenLabs speech-to-text API
@@ -31,6 +16,14 @@ export const convertSpeechToText = async (
     console.log(
       `Starting speech-to-text conversion for file: ${audioFilePath}`
     );
+
+    const client = APIManager.getInstance().getClient<ElevenLabsClient>('elevenlabs');
+    
+    if (!client) {
+      throw new Error("ElevenLabs client is not initialized. Please set your API key in the sidebar.");
+    }
+
+    // const url = "https://api.elevenlabs.io/v1/speech-to-text"
 
     const result = await client.speechToText.convert({
       file: fs.createReadStream(audioFilePath),

@@ -97,7 +97,7 @@ export interface ActionResponse {
  * George was to be established. The land was bountiful and prosperous, GPU grew like
  * apples on trees, and even the proletariat had a MacBook. But above all, the people
  * could chat with the Cheerleader anytime they wanted, just a click away.
- * -- The Georgeiste Manifesto, Chapter 1, Verse 6
+ * -- The Georgeiste Manifesto, Chapter 2, Verse 4
  */
 class InlineChat {
     private isProcessing = false;

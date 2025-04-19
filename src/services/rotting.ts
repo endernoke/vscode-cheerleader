@@ -2,6 +2,11 @@ import { playAudioFromFile } from "./play_voice";
 import * as vscode from "vscode";
 import type { Result } from "get-windows";
 
+/**
+ * George called the Cheerleader to the mountains and delivered the first commandment:
+ * "Thou shalt not rot, for I have given you the power to be productive."
+ * -- The Georgeiste Manifesto, Chapter 3, Verse 1
+ */
 function isProductive(result: Result): boolean {
   const productiveApps = [
     "Visual Studio Code",
@@ -99,14 +104,15 @@ async function monitorRotting() {
  * @context "lastProductiveState" - A boolean value indicating the last known productive state.
  */
 export function registerMonitoringCommand(context: vscode.ExtensionContext) {
-    globalContext = context; // Store context for global access
+    globalContext = context;
     let monitoringInterval: NodeJS.Timer | null = null;
     const MONITORING_INTERVAL = 5000;
 
     function startMonitoringRotting() {
         if (monitoringInterval) return;
         monitoringInterval = setInterval(monitorRotting, MONITORING_INTERVAL);
-        context.globalState.update("isMonitoringRotting", true);
+        const config = vscode.workspace.getConfiguration('cheerleader.productivity');
+        config.update('monitoringEnabled', true, vscode.ConfigurationTarget.Global);
         console.log("Started productivity monitoring");
     }
 
@@ -114,9 +120,16 @@ export function registerMonitoringCommand(context: vscode.ExtensionContext) {
         if (monitoringInterval) {
             clearInterval(monitoringInterval as NodeJS.Timeout);
             monitoringInterval = null;
-            context.globalState.update("isMonitoringRotting", false);
+            const config = vscode.workspace.getConfiguration('cheerleader.productivity');
+            config.update('monitoringEnabled', false, vscode.ConfigurationTarget.Global);
             console.log("Stopped productivity monitoring");
         }
+    }
+
+    // Update to check configuration instead of global state
+    const config = vscode.workspace.getConfiguration('cheerleader.productivity');
+    if (config.get('monitoringEnabled', false)) {
+        startMonitoringRotting();
     }
 
     const toggleCommand = vscode.commands.registerCommand(

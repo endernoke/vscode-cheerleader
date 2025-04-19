@@ -1,12 +1,7 @@
 import * as fs from 'fs';
 import { pipeline } from '@huggingface/transformers';
 import { WaveFile } from 'wavefile';
-import * as dotenv from 'dotenv';
-import path from 'path';
-
-dotenv.config({
-  path: path.resolve(__dirname, "../../.env"),
-});
+import { APIManager } from './api_manager';
 
 /**
  * Convert an audio file to text using Hugging Face's Whisper model
@@ -19,16 +14,23 @@ dotenv.config({
  * console.log(text); // Transcribed text
  */
 async function transcribe_api(audioData: Buffer) {
+    const apiManager = APIManager.getInstance();
+    const client = apiManager.getClient<{ apiKey: string }>('huggingface');
+
+    if (!client) {
+        throw new Error("Hugging Face API key is not set. Please set your API key in the sidebar.");
+    }
+
     const response = await fetch(
-      "https://router.huggingface.co/hf-inference/models/openai/whisper-small",
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-          "Content-Type": "audio/wav",
-        },
-        method: "POST",
-        body: audioData,
-      }
+        "https://router.huggingface.co/hf-inference/models/openai/whisper-small",
+        {
+            headers: {
+                Authorization: `Bearer ${client.apiKey}`,
+                "Content-Type": "audio/wav",
+            },
+            method: "POST",
+            body: audioData,
+        }
     );
     const result = await response.json();
 
@@ -78,31 +80,24 @@ async function transcribe_local(audioData: Buffer) {
  * @param audioFilePath Path to the WAV audio file to transcribe
  * @param useLocal Whether to use the local pipeline or the API
  * @returns Promise with the transcribed text
- * @note This is different from the convertSpeechToText function using ElevenLabs API
+ * @note This is different from the ElevenLabs speech-to-text
  * We have experimentally determined that the Inference API is faster than local on CPU.
  * Inference API: 157 ms vs local: 2.16s, thus the default option goes with the API
  */
 export const convertSpeechToText = async (
-  audioFilePath: string,
-  useLocal: boolean = false
+    audioFilePath: string,
+    useLocal: boolean = false
 ): Promise<string> => {
-  try {
-    console.log(`Starting local speech-to-text conversion for file: ${audioFilePath}`);
+    try {
+        console.log(`Starting local speech-to-text conversion for file: ${audioFilePath}`);
 
-    const audioData = fs.readFileSync(audioFilePath);
-    // let start = performance.now();
-    const result = await (useLocal ? transcribe_local(audioData) : transcribe_api(audioData));
-    // let end = performance.now();
-    // console.log(`Time taken: ${end - start} ms`);
+        const audioData = fs.readFileSync(audioFilePath);
+        const result = await (useLocal ? transcribe_local(audioData) : transcribe_api(audioData));
 
-    console.log("Local speech-to-text conversion completed successfully");
-    return result.text || '';
-  } catch (error) {
-    console.error("Error in local speech-to-text service:", error);
-    throw error;
-  }
+        console.log("Local speech-to-text conversion completed successfully");
+        return result.text || '';
+    } catch (error) {
+        console.error("Error in local speech-to-text service:", error);
+        throw error;
+    }
 };
-
-// convertSpeechToTextLocal("../../recordings/test.wav").then((text) => {
-//   console.log("Transcribed text:", text);
-// });
