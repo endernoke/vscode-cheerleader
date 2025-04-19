@@ -9,9 +9,14 @@ import { WebSocketService } from "./services/websocket_service";
 import { activateEncouragement } from "./services/encouragement_service";
 import { registerMonitoringCommand } from "./services/rotting";
 import { activateSidebar } from "./sidebar";
+import { APIManager } from "./services/api_manager";
 
 export function activate(context: vscode.ExtensionContext) {
-  // Activate core features first
+  // Initialize API Manager first
+  const apiManager = APIManager.getInstance(context);
+  apiManager.initialize();
+
+  // Activate core features
   activateOverlay(context);
   activateSidebar(context);
 
