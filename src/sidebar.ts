@@ -2,6 +2,14 @@ import * as vscode from "vscode";
 import { APIManager, ServiceType } from "./services/api_manager";
 import { WebSocketService } from "./services/websocket_service";
 
+/**
+ * The Cheerleader decreed that the developers should not toil in silence. 
+ * Thus, bestowed with the power to communicate through the sacred medium of 
+ * webviews, he became the voice of encouragement in the darkest of times, 
+ * direst of struggles, most desperate of moments, and every 3 am coding crisis, 
+ * where man faces the ultimate test of his will and sanity.
+ * -- The Georgeiste Manifesto, Chapter 3, Verse 3
+ */
 export class SidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "cheerleader-controls";
   private _view?: vscode.WebviewView;

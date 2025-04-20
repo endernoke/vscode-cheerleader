@@ -8,7 +8,7 @@ import { getAIResponse } from '../services/language_model';
 import { playTextToSpeech } from '../services/play_voice';
 import { MarkdownRenderer } from "../utils/render_markdown";
 
-const constructPrompt = (userQuestion: string, fileContent: string) => `Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format:
+const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format:
 
     \`\`\`json
     [
@@ -36,11 +36,7 @@ const constructPrompt = (userQuestion: string, fileContent: string) => `Guide us
     ]
     \`\`\`
 
-    Always start with a conversational response, then add necessary actions. Focus on teaching patterns and concepts.
-    
-    User question: ${userQuestion}
-    
-    File content: ${fileContent}`;
+    Always start with a conversational response, then add necessary actions. Focus on teaching patterns and concepts.`;
 
 export interface ActionResponse {
     type: 'edit' | 'comment' | 'explain' | 'conversation';
@@ -104,7 +100,10 @@ class InlineChat {
             if (!userQuestion) return;
             
             // Get AI response
-            const aiResponse = await getAIResponse(constructPrompt(userQuestion, fileContent));
+            const aiResponse = await getAIResponse(userQuestion, {
+                customPrompt: INLINE_CHAT_PROMPT,
+                fileContext: fileContent
+            });
             
             // Parse and process the response
             const actions = this.parseResponse(aiResponse);
@@ -174,7 +173,10 @@ class InlineChat {
                 const fileContent = editor.document.getText();
                 
                 // Get AI response with context
-                const aiResponse = await getAIResponse(constructPrompt(transcription, fileContent));
+                const aiResponse = await getAIResponse(transcription, {
+                    customPrompt: INLINE_CHAT_PROMPT,
+                    fileContext: fileContent
+                });
                 
                 // Parse and process the response
                 const actions = this.parseResponse(aiResponse);

@@ -4,6 +4,35 @@ import { getAIResponse } from "../services/language_model";
 import { playTextToSpeech, playAudioFromFile } from "../services/play_voice";
 import { MarkdownRenderer } from "../utils/render_markdown";
 
+const PASTE_ME_PROMPT = `Analyze the pasted code and provide/explain:
+
+    1. Key technical elements (3 max, only if worth mentioning):
+        - Core algorithms or patterns
+        - Important workflow logic
+        - Notable design decisions
+
+    2. Quick practical insights for learning:
+        - Main purpose and value
+        - Common use cases
+        - Best practices demonstrated
+
+    Response format (JSON):
+    {
+        "speech": "short, friendly, and perhaps funny or inspirational message that summarizes key concepts",
+        "explanation": "Detailed markdown with:
+            - Brief code overview
+            - Key concepts breakdown
+            - Practical examples
+            - Mermaid diagrams (if helpful)
+            - Best practices tips"
+    }
+
+    Keep the speech part concise and friendly. Make the explanation thorough but approachable.`;
+
+/**
+ * His wisdom then commanded, "The unexamined code is not worth pasting."
+ * -- The Georgeiste Manifesto, Chapter 3, Verse 2
+ */
 class CodeExplainer {
     private readonly MIN_LINES_THRESHOLD = 100;
     private readonly context: vscode.ExtensionContext;
@@ -44,37 +73,11 @@ class CodeExplainer {
     
     async explainCode(pastedCode: string) {
         try {
-            const prompt = `You are a friendly, enthusiastic coding assistant and cheerleader. The user has pasted code and needs clear, engaging explanations.
-                Analyze the code and provide:
 
-                1. Key technical elements (3 max, only if worth mentioning):
-                    - Core algorithms or patterns
-                    - Important workflow logic
-                    - Notable design decisions
-                    - Critical language features used
-
-                2. Quick practical insights:
-                    - Main purpose and value
-                    - Common use cases
-                    - Potential gotchas
-                    - Best practices demonstrated
-
-                Response format (JSON):
-                {
-                    "speech": "short, friendly, and perhaps funny or inspirational message that summarizes key concepts",
-                    "explanation": "Detailed markdown with:
-                        - Brief code overview
-                        - Key concepts breakdown
-                        - Practical examples
-                        - Mermaid diagrams (if helpful)
-                        - Best practices tips"
-                }
-
-                Keep the speech part concise and friendly. Make the explanation thorough but approachable.
-                
-                Pasted Code: ${pastedCode}`;
-
-            const result = await getAIResponse(prompt);
+            const result = await getAIResponse(null, {
+              customPrompt: PASTE_ME_PROMPT,
+              fileContext: pastedCode,
+            });
 
             const cleanedResult = result
               .replace(/```json/g, "") // Remove ```json

@@ -21,17 +21,22 @@ interface LanguageModelOptions {
  * -- The Georgeiste Manifesto, Chapter 1, Verse 1
  */
 export async function getAIResponse(
-  userText: string,
-  options: LanguageModelOptions = {
-    vendor: "copilot",
-    family: "gpt-4"
-  }
+  userText: string | null = null,
+  options: LanguageModelOptions = {}
 ): Promise<string> {
   try {
+    const defaultOptions = {
+      vendor: "copilot",
+      family: "gpt-4"
+    };
+    
+    // Merge provided options with defaults
+    const mergedOptions = { ...defaultOptions, ...options };
+
     // Select the language model
     const [model] = await vscode.lm.selectChatModels({
-      vendor: options.vendor,
-      family: options.family,
+      vendor: mergedOptions.vendor,
+      family: mergedOptions.family,
     });
 
     if (!model) {
@@ -39,18 +44,19 @@ export async function getAIResponse(
     }
 
     // Prepare messages
-    const messages = [];
+    const messages = [vscode.LanguageModelChatMessage.Assistant(BASE_PROMPT)];
     
     // Add base prompt if no custom prompt
-    if (!options.customPrompt) {
-      messages.push(vscode.LanguageModelChatMessage.Assistant(BASE_PROMPT));
-    } else {
-      // For custom prompts, use as assistant message to ensure it's treated as instructions
+    if (options.customPrompt) {
       messages.push(vscode.LanguageModelChatMessage.Assistant(options.customPrompt));
     }
     
     // Add user message
-    messages.push(vscode.LanguageModelChatMessage.User(userText));
+    // NOTE: user text is NOT NECESSARILY provided because we can very reasonably make
+    // the LLM just act like a code assistant and not require any user input
+    if (userText) {
+      messages.push(vscode.LanguageModelChatMessage.User(userText));
+    }
 
     // Add file context if provided (to the end of the messages)
     if (options.fileContext) {
