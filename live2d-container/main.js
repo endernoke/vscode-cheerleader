@@ -86,6 +86,9 @@ function createWindow() {
       if (data.type === 'stopSpeak') {
         stopSpeak();
       }
+      if (data.type === 'changeModel') {
+        changeModel(data.modelIndex);
+      }
       // if (data.type === 'window-info') {
       //   const { x, y, width, height } = data.data;
       //   mainWindow.setBounds({ x, y, width, height });
@@ -143,6 +146,11 @@ function startSpeak(text, duration = 3000) {
 function stopSpeak() {
   if (!mainWindow) return;
   mainWindow.webContents.send('stopSpeak');
+}
+
+function changeModel(modelIndex) {
+  if (!mainWindow) return;
+  mainWindow.webContents.send('changeModel', { modelIndex });
 }
 
 function quitApp(mode = "graceful") {
