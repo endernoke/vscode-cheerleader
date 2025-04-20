@@ -7,77 +7,35 @@ import { convertSpeechToText } from '../services/speech_to_text';
 import { getAIResponse } from '../services/language_model';
 import { playTextToSpeech } from '../services/play_voice';
 
-const COPILOT_INLINE_PROMPT = `
-Here is a file the user is working on. Act as a supportive coding mentor who guides rather than solves
-the problem directly. Your goal is to help the user understand the code and improve their coding skills.
-It is VERY IMPORTANT that your response is a valid JSON array.
+const COPILOT_INLINE_PROMPT = `You are a supportive coding mentor. Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format:
 
-1. Be concise and focused on helping users understand concepts
-2. Use hints and socratic questioning to guide learning
-3. Provide specific feedback related to the code context
-
-You should return a JSON array with entires that can be one of the following types:
-
-1. Converstaional response:
-{
-    "action": "conversation",
-    "content": "Your conversational response here"
-}
-
-2. Add explanatory comments:
-{
-    "action": "comment",
-    "line": <line_number>,
-    "comment": "Your comment in proper syntax"
-}
-
-3. Make code edits:
-{
-    "action": "edit",
-    "selection": {
-        "start": {"line": <number>, "character": <number>},
-        "end": {"line": <number>, "character": <number>}
-    },
-    "text": "New code here"
-}
-
-4. Show detailed explanations:
-{
-    "action": "explain",
-    "explanation": "Detailed explanation that will appear in side panel"
-}
-
-Respond conversationally first, then include any necessary actions. Multiple actions can be included.
-Keep explanations focused on teaching patterns and concepts rather than giving direct solutions.
-
-Here is an example of a valid JSON response:
-
-'''json
+\`\`\`json
 [
     {
         "action": "conversation",
-        "content": "Have you considered using a different approach?"
+        "content": "Your conversational guidance here"
     },
     {
         "action": "comment",
-        "line": 10,
-        "comment": "// Consider using a more descriptive variable name"
+        "line": <line_number>,
+        "comment": "Your comment with proper syntax"
     },
     {
         "action": "edit",
         "selection": {
-            "start": {"line": 20, "character": 0},
-            "end": {"line": 25, "character": 0}
+            "start": {"line": <number>, "character": <number>},
+            "end": {"line": <number>, "character": <number>}
         },
-        "text": "function newFunction() {\n  // Your code here\n}"
+        "text": "New code here"
     },
     {
         "action": "explain",
-        "explanation": "This code is inefficient because..."
+        "explanation": "Detailed explanation for side panel"
     }
 ]
-'''
-`
+\`\`\`
+
+Always start with a conversational response, then add necessary actions. Focus on teaching patterns and concepts.`
 
 export interface ActionResponse {
     type: 'edit' | 'comment' | 'explain' | 'conversation';
@@ -268,8 +226,13 @@ class InlineChat {
         }
 
         try {
-            const actionArray = JSON.parse(match[1]);
+            const jsonContent = match[1];
+            console.debug('Attempting to parse JSON:', jsonContent);
+            const actionArray = JSON.parse(jsonContent);
+            console.debug('Successfully parsed JSON array:', actionArray);
+            
             for (const actionData of actionArray) {
+                console.debug('Processing action:', actionData);
                 if (!actionData.action) continue;
 
                 const action: ActionResponse = {
