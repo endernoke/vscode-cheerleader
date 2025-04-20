@@ -6,36 +6,41 @@ import { AudioRecorder } from '../services/record_speech';
 import { convertSpeechToText } from '../services/speech_to_text';
 import { getAIResponse } from '../services/language_model';
 import { playTextToSpeech } from '../services/play_voice';
+import { MarkdownRenderer } from "../utils/render_markdown";
 
-const COPILOT_INLINE_PROMPT = `You are a supportive coding mentor. Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format:
+const constructPrompt = (userQuestion: string, fileContent: string) => `Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format:
 
-\`\`\`json
-[
-    {
-        "action": "conversation",
-        "content": "Your conversational guidance here"
-    },
-    {
-        "action": "comment",
-        "line": <line_number>,
-        "comment": "Your comment with proper syntax"
-    },
-    {
-        "action": "edit",
-        "selection": {
-            "start": {"line": <number>, "character": <number>},
-            "end": {"line": <number>, "character": <number>}
+    \`\`\`json
+    [
+        {
+            "action": "conversation",
+            "content": "Your short conversational guidance here"
         },
-        "text": "New code here"
-    },
-    {
-        "action": "explain",
-        "explanation": "Detailed explanation for side panel"
-    }
-]
-\`\`\`
+        {
+            "action": "comment",
+            "line": <line_number>,
+            "comment": "Your comment with proper syntax such as # for python"
+        },
+        {
+            "action": "edit",
+            "selection": {
+                "start": {"line": <number>, "character": <number>},
+                "end": {"line": <number>, "character": <number>}
+            },
+            "text": "New code here"
+        },
+        {
+            "action": "explain",
+            "explanation": "Detailed explanation in proper Markdown code, you can (only if necessary) include Mermaid diagram"
+        }
+    ]
+    \`\`\`
 
-Always start with a conversational response, then add necessary actions. Focus on teaching patterns and concepts.`
+    Always start with a conversational response, then add necessary actions. Focus on teaching patterns and concepts.
+    
+    User question: ${userQuestion}
+    
+    File content: ${fileContent}`;
 
 export interface ActionResponse {
     type: 'edit' | 'comment' | 'explain' | 'conversation';
@@ -99,10 +104,7 @@ class InlineChat {
             if (!userQuestion) return;
             
             // Get AI response
-            const aiResponse = await getAIResponse(userQuestion, {
-                customPrompt: COPILOT_INLINE_PROMPT,
-                fileContext: fileContent,
-            });
+            const aiResponse = await getAIResponse(constructPrompt(userQuestion, fileContent));
             
             // Parse and process the response
             const actions = this.parseResponse(aiResponse);
@@ -166,26 +168,16 @@ class InlineChat {
                 }
                 
                 // Show transcription
-                vscode.window.showInformationMessage(`You said: ${transcription}`);
+                // vscode.window.showInformationMessage(`You said: ${transcription}`);
                 
                 // Get file content
                 const fileContent = editor.document.getText();
                 
                 // Get AI response with context
-                const aiResponse = await getAIResponse(transcription, {
-                    customPrompt: COPILOT_INLINE_PROMPT,
-                    fileContext: fileContent,
-                });
+                const aiResponse = await getAIResponse(constructPrompt(transcription, fileContent));
                 
                 // Parse and process the response
                 const actions = this.parseResponse(aiResponse);
-                
-                // Handle text-to-speech for conversation actions
-                const conversationActions = actions.filter(a => a.type === 'conversation');
-                if (conversationActions.length > 0) {
-                    await playTextToSpeech(conversationActions[0].content);
-                    vscode.window.showInformationMessage(`Cheerleader: ${conversationActions[0].content}`);
-                }
                 
                 await this.processActions(editor, actions);
                 
@@ -227,9 +219,9 @@ class InlineChat {
 
         try {
             const jsonContent = match[1];
-            console.debug('Attempting to parse JSON:', jsonContent);
+            // console.debug('Attempting to parse JSON:', jsonContent);
             const actionArray = JSON.parse(jsonContent);
-            console.debug('Successfully parsed JSON array:', actionArray);
+            // console.debug('Successfully parsed JSON array:', actionArray);
             
             for (const actionData of actionArray) {
                 console.debug('Processing action:', actionData);
@@ -292,10 +284,9 @@ class InlineChat {
         
         for (const action of actions) {
             switch (action.type) {
-                // NOTE: We need to change this to play audio after finished testing!
                 case 'conversation':
-                    // await playTextToSpeech(action.content);
-                    vscode.window.showInformationMessage(`Cheerleader: ${action.content}`);
+                    await playTextToSpeech(action.content);
+                    // vscode.window.showInformationMessage(`Cheerleader: ${action.content}`);
                     break;
                     
                 case 'edit':
@@ -356,21 +347,7 @@ class InlineChat {
      * Show an explanation in a side panel
      */
     private async showExplanation(content: string): Promise<void> {
-        const panel = vscode.window.createWebviewPanel(
-            'cheerleaderExplanation',
-            'Cheerleader Explanation',
-            vscode.ViewColumn.Beside,
-            {}
-        );
-        
-        panel.webview.html = `
-            <!DOCTYPE html>
-            <html>
-                <body>
-                    <pre>${content}</pre>
-                </body>
-            </html>
-        `;
+        MarkdownRenderer.renderInSidebar(content, 'Cheerleader Explanation');
     }
 }
 

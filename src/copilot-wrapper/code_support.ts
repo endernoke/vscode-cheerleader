@@ -26,7 +26,6 @@ interface CodeReviewResponse {
  * -- The Georgeiste Manifesto, Chapter 2, Verse 3
  */
 export class CodeSupport {
-    private static statusBarItem: vscode.StatusBarItem;
     private static isProcessing: boolean = false;
 
     static async reviewCode(document: vscode.TextDocument): Promise<void> {
