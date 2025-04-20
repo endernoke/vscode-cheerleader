@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { APIManager, ServiceType } from "./services/api_manager";
+import { WebSocketService } from "./services/websocket_service";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "cheerleader-controls";
@@ -46,6 +47,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             break;
         case "saveHuggingFaceKey":
             await this.handleApiKeyUpdate('huggingface', data.value);
+            break;
+        case "changeCharacter":
+            WebSocketService.getInstance().sendMessage('changeModel', { modelIndex: data.index });
             break;
       }
     });
@@ -102,6 +106,22 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const productivityEnabled = vscode.workspace
       .getConfiguration()
       .get("cheerleader.productivity.monitoringEnabled", false);
+
+    // Create character paths for the grid
+    const characters = [
+        "Nika",
+        "Neko",
+        "Jiu",
+        "Phro",
+        "Sam",
+        "Shirley",
+        "Thorne",
+        "Sonia",
+    ];
+    const characterPaths = [];
+    for (let i = 0; i < 8; i++) {
+      characterPaths.push(webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, `assets/characters/${characters[i]}.png`)).toString());
+    }
 
     return `
             <!DOCTYPE html>
@@ -207,6 +227,39 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             background: var(--vscode-button-background);
                             opacity: 0.8;
                         }
+                        
+                        /* Character grid styles */
+                        .character-grid {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            grid-gap: 10px;
+                            margin-bottom: 10px;
+                        }
+                        .character-item {
+                            width: 100%;
+                            aspect-ratio: 1;
+                            border: 2px solid transparent;
+                            border-radius: 4px;
+                            overflow: hidden;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                        }
+                        .character-item:hover {
+                            transform: scale(1.05);
+                        }
+                        .character-item.selected {
+                            border-color: var(--vscode-focusBorder);
+                        }
+                        .character-item img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                        .character-note {
+                            font-size: 11px;
+                            margin-top: 5px;
+                            color: var(--vscode-descriptionForeground);
+                        }
                     </style>
                 </head>
                 <body>
@@ -239,7 +292,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             <h3>Character Selection</h3>
                         </div>
                         <div class="section-content">
-                            <p class="status">Coming soon...</p>
+                            <div class="character-grid">
+                                ${characterPaths.map((path, index) => `
+                                    <div class="character-item" data-index="${index}" onclick="selectCharacter(${index})">
+                                        <img src="${path}" alt="Character ${index+1}" />
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button onclick="changeCharacter()">Select Character</button>
                         </div>
                     </div>
 
@@ -265,6 +325,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                     <script>
                         const vscode = acquireVsCodeApi();
+                        let selectedCharacterIndex = 0;
                         
                         // Add click handlers for section headers
                         document.querySelectorAll('.section-header').forEach(header => {
@@ -319,6 +380,31 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         function saveHuggingFaceKey(value) {
                             vscode.postMessage({ type: 'saveHuggingFaceKey', value });
                         }
+
+                        // Character selection functions
+                        function selectCharacter(index) {
+                            selectedCharacterIndex = index;
+                            
+                            // Remove selected class from all items
+                            document.querySelectorAll('.character-item').forEach(item => {
+                                item.classList.remove('selected');
+                            });
+                            
+                            // Add selected class to clicked item
+                            document.querySelector(\`.character-item[data-index="\${index}"]\`).classList.add('selected');
+                        }
+                        
+                        function changeCharacter() {
+                            vscode.postMessage({ 
+                                type: 'changeCharacter',
+                                index: selectedCharacterIndex
+                            });
+                        }
+
+                        // Pre-select the first character
+                        window.addEventListener('load', () => {
+                            selectCharacter(0);
+                        });
                     </script>
                 </body>
             </html>

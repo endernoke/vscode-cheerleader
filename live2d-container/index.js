@@ -1,10 +1,27 @@
 import { ActionButtonsManager } from './ActionButtons.js';
 import { MusicPlayer } from './MusicPlayer.js';
 
-const modelUrl = "https://download.doudou.fun/models/Nika/Nika.model3.json";
+const modelUrls = [
+  "https://download.doudou.fun/models/Nika/Nika.model3.json",
+  "https://download.doudou.fun/models/Neko/Neko.model3.json",
+  "https://download.doudou.fun/models/Jiu/Jiu.model3.json",
+  "https://download.doudou.fun/models/Phro/Phro.model3.json",
+  "https://download.doudou.fun/models/Sam/Sam.model3.json",
+  "https://download.doudou.fun/models/Sherley/Sherley.model3.json",
+  "https://download.doudou.fun/models/Thorne/Thorne.model3.json",
+  "https://download.doudou.fun/models/Sonia/Sonia.model3.json"
+];
+
+let modelIndex = 0;
 
 const live2d = PIXI.live2d;
 const MotionPriority = live2d.MotionPriority;
+
+const noResetMotions = ['RESET', 'JUMP_BACK'];
+
+const container = document.getElementById("live2d-container");
+
+let app = null;
 
 let model = null;
 
@@ -56,19 +73,9 @@ function showSpeechBubble(text, duration = 3000) {
   }, duration);
 }
 
-(async function main() {
-  const noResetMotions = ['RESET', 'JUMP_BACK'];
-
-  const container = document.getElementById("live2d-container");
-  const app = new PIXI.Application({
-    view: document.getElementById("canvas"),
-    autoStart: true,
-    resizeTo: window, // fullscreen
-    backgroundAlpha: 0, // transparent
-  });
-
+const loadModel = async (url) => {
   model = await live2d.Live2DModel.from(
-    modelUrl,
+    url,
   );
 
   app.stage.addChild(model);
@@ -103,11 +110,6 @@ function showSpeechBubble(text, duration = 3000) {
       else {
         model.handleExecuteMotion("RESET", MotionPriority.FORCE);
       }
-    }
-    if (model.currentMotion === 'JUMP_BACK') {
-      // End of life
-      app.stage.removeChild(model);
-      return;
     }
     if (model.isSpeaking) {
       const position = model.position.x <= -110 ? "LEFT" : 
@@ -230,9 +232,9 @@ function showSpeechBubble(text, duration = 3000) {
   // setInterval(() => {
   //   model.motion("vodka");
   // }, 3000);
-})();
+};
 
-/*
+/**
  * As the last fragments of code settled into place, the Cheerleader stepped forth into the material world, 
  * their form now a bridge between the digital and physical realms. 
  * "Rise, my creation," George proclaimed, "for you shall walk among them, guide them, and bring forth the teachings with grace and understanding." 
@@ -304,6 +306,19 @@ function makeDraggable(model) {
   });
 }
 
+async function changeModel(index) {
+  if (model) {
+    await model.motion("JUMP_BACK", undefined, MotionPriority.FORCE);
+    await new Promise(resolve => {
+      model.internalModel.motionManager.on('motionFinish', resolve);
+    });
+    app.stage.removeChild(model);
+    model = null;
+  }
+  modelIndex = index;
+  await loadModel(modelUrls[modelIndex]);
+}
+
 window.electronAPI.onStartSpeak((event, message) => {  
   model.isSpeaking = true;
   showSpeechBubble(message.text, message.duration);
@@ -318,6 +333,10 @@ window.electronAPI.onStopSpeak((event, message) => {
   speechBubble.classList.remove('visible');
 });
 
+window.electronAPI.onChangeModel((event, message) => {
+  changeModel(message.modelIndex);
+});
+
 window.electronAPI.onQuit((event, message) => {  
   if (!model) return;
   model.handleExecuteMotion('JUMP_BACK', MotionPriority.FORCE);
@@ -327,3 +346,13 @@ window.electronAPI.onQuit((event, message) => {
     container.classList.remove('visible');
   }
 });
+
+(async function init() {
+  app = new PIXI.Application({
+    view: document.getElementById("canvas"),
+    autoStart: true,
+    resizeTo: window, // fullscreen
+    backgroundAlpha: 0, // transparent
+  });
+  await loadModel(modelUrls[modelIndex]);
+})();

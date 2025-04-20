@@ -39,4 +39,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onQuit: (callback) => ipcRenderer.on('quit', callback),
   openLinkInBrowser: (url) => ipcRenderer.send('open-link-in-browser', url),
   runVSCodeCommand: (command) => ipcRenderer.send('run-vscode-command', command),
+  onChangeModel: (callback) => ipcRenderer.on('changeModel', callback),
 });
