@@ -8,6 +8,7 @@ import { registerCodeSupportCommands } from "./copilot-wrapper/code_support";
 import { WebSocketService } from "./services/websocket_service";
 import { activateEncouragement } from "./services/encouragement_service";
 import { registerMonitoringCommand } from "./services/rotting";
+import { registerPasteMeCommand } from "./copilot-wrapper/paste_me";
 import { activateSidebar } from "./sidebar";
 import { APIManager } from "./services/api_manager";
 
@@ -28,6 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerCodeSupportCommands(context);
   registerMonitoringCommand(context);
   activateEncouragement(context);
+  registerPasteMeCommand(context);
 
   // Add disposal of WebSocket service
   context.subscriptions.push(
