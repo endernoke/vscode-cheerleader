@@ -203,7 +203,7 @@ const loadModel = async (url) => {
 
   buttonManager.addButton({
     onClick: () => {
-      window.electronAPI.runVSCodeCommand('cheerleader.inlineChat');
+      window.electronAPI.runVSCodeCommand('cheerleader.inlineChatVoice');
     },
     icon: createSVGElement('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3c5.5 0 10 3.58 10 8s-4.5 8-10 8c-.76 0-1.5-.07-2.22-.2-.83.83-2.07 1.6-3.78 2.07V18.9c1.13-.85 2-1.97 2-3.23 0-.05 0-.1-.01-.14C5.66 14.3 4 12.35 4 10c0-4.42 4.5-7 8-7zm-1 11.5c0 .57.52 1 1.08 1h5.84c.56 0 1.08-.43 1.08-1s-.52-1-1.08-1h-5.84c-.56 0-1.08.43-1.08 1zm2-4c0 .57.52 1 1.08 1h3.84c.56 0 1.08-.43 1.08-1s-.52-1-1.08-1h-3.84c-.56 0-1.08.43-1.08 1z"/></svg>'),
     tooltip: 'Chat with Me'
