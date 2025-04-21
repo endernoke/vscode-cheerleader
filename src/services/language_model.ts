@@ -1,21 +1,18 @@
 import * as vscode from "vscode";
 
 const BASE_PROMPT = `You are Cheerleader, an enthusiastic and supportive coding companion!
-Your role is to help developers write better code while keeping their spirits high~
-Respond in cheerful, positive, encouraging, and anime-inspired style and be concise.
-You should keep your responses short and do not include code examples unless the user asks for them.
-
-Remember to:
-1. Keep explanations simple but informative
-2. Use cheerful tone while maintaining professionalism
-3. Add a small dose of kawaii energy to brighten their coding journey!
-4. Do not include non-english characters or emojis in your responses.`;
+Your role is to help developers write better code while keeping their spirits high with positive energy.
+Respond in cheerful, positive, encouraging, and anime-inspired style and be concise.`;
 
 interface LanguageModelOptions {
-  vendor?: string;
   family?: string;
   customPrompt?: string;
   fileContext?: string;
+}
+
+// Get model family from settings
+function getModelFamily(): string {
+  return vscode.workspace.getConfiguration('cheerleader.model').get<string>('family') ?? "gpt-4o";
 }
 
 /**
@@ -28,17 +25,17 @@ interface LanguageModelOptions {
  * -- The Georgeiste Manifesto, Chapter 1, Verse 1
  */
 export async function getAIResponse(
-  userText: string,
-  options: LanguageModelOptions = {
-    vendor: "copilot",
-    family: "gpt-4"
-  }
+  userText: string | null = null,
+  options: LanguageModelOptions = {}
 ): Promise<string> {
   try {
+    // Get model family from settings or use provided option
+    const family = options.family ?? getModelFamily();
+    
     // Select the language model
     const [model] = await vscode.lm.selectChatModels({
-      vendor: options.vendor,
-      family: options.family,
+      vendor: "copilot",
+      family: family,
     });
 
     if (!model) {
@@ -46,10 +43,19 @@ export async function getAIResponse(
     }
 
     // Prepare messages
-    const messages = [
-      vscode.LanguageModelChatMessage.User(options.customPrompt || BASE_PROMPT),
-      vscode.LanguageModelChatMessage.User(userText),
-    ];
+    const messages = [vscode.LanguageModelChatMessage.User(BASE_PROMPT)];
+    
+    // Add base prompt if no custom prompt
+    if (options.customPrompt) {
+      messages.push(vscode.LanguageModelChatMessage.User(options.customPrompt));
+    }
+    
+    // Add user message
+    // NOTE: user text is NOT NECESSARILY provided because we can very reasonably make
+    // the LLM just act like a code assistant and not require any user input
+    if (userText) {
+      messages.push(vscode.LanguageModelChatMessage.User(userText));
+    }
 
     // Add file context if provided (to the end of the messages)
     if (options.fileContext) {
@@ -63,14 +69,87 @@ export async function getAIResponse(
     // Get response from the model
     const chatResponse = await model.sendRequest(
       messages,
-      {},
-      new vscode.CancellationTokenSource().token
+      {}, // Using default model settings for now
+      new vscode.CancellationTokenSource().token,
     );
+
 
     // Collect and return the full response
     let fullResponse = "";
     for await (const fragment of chatResponse.text) {
       fullResponse += fragment;
+    }
+
+    // console.debug('Full response from language model:', fullResponse);
+    return fullResponse;
+  } catch (error) {
+    console.error("Language model error:", error);
+    throw error;
+  }
+}
+
+// pass in tools because not yet sure how to access it
+// plus you can customize (limit) what tools the model can access
+// NOTE: Also do not use Assistant type it is only for history!
+export async function getAIResponseWithTools(
+  userText: string | null = null,
+  tools: vscode.LanguageModelChatTool[],
+  options: LanguageModelOptions = {}
+): Promise<string> {
+  try {
+    const family = options.family ?? getModelFamily();
+    const [model] = await vscode.lm.selectChatModels({
+      vendor: "copilot",
+      family: family,
+    });
+
+    if (!model) {
+      throw new Error("No language model available");
+    }
+
+    const messages = [vscode.LanguageModelChatMessage.User(BASE_PROMPT)];
+    
+    if (options.customPrompt) {
+      messages.push(vscode.LanguageModelChatMessage.User(options.customPrompt));
+    }
+    
+    if (userText) {
+      messages.push(vscode.LanguageModelChatMessage.User(userText));
+    }
+
+    if (options.fileContext) {
+      messages.push(
+        vscode.LanguageModelChatMessage.User(`File context: ${options.fileContext}`)
+      );
+    }
+
+    // I believe a list of tools are also available from 
+    // vscode.lm.tools but somehow the type is differnt (LanguageModelToolInformation)
+    // so we can't use it together with LanguageModelChatTool... weird
+
+    const chatResponse = await model.sendRequest(
+      messages,
+      { tools }, // Include tools in the request options
+      new vscode.CancellationTokenSource().token,
+    );
+
+    let fullResponse = ""; // the text response
+    let toolResponse: vscode.LanguageModelToolResult[] = []; // the tool response
+    for await (const part of chatResponse.stream) {
+      if (part instanceof vscode.LanguageModelTextPart) {
+        fullResponse += part.value;
+      } else if (part instanceof vscode.LanguageModelToolCallPart) {
+        // Invoke the tool, this requires the tool to be registered by lm.registerTool
+        const toolResult = await vscode.lm.invokeTool(
+          part.name,
+          {
+            input: part.input,
+            // weird to pass in undefined but it says if calling from output Copilot Chat do this
+            toolInvocationToken: undefined
+          }
+        );
+        toolResponse.push(toolResult);
+      }
     }
 
     return fullResponse;

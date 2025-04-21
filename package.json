@@ -67,6 +67,12 @@
         "icon": "$(bell)"
       },
       {
+        "command": "cheerleader.inlineChatVoice",
+        "title": "Inline Chat with Cheerleader (Voice)",
+        "category": "Cheerleader",
+        "icon": "$(bell)"
+      },
+      {
         "command": "cheerleader.reviewCode",
         "title": "Review Code with Cheerleader",
         "category": "Cheerleader",
@@ -80,6 +86,11 @@
       {
         "command": "cheerleader.toggleMonitoringRotting",
         "title": "Toggle Monitoring Rotting",
+        "category": "Cheerleader"
+      },
+      {
+        "command": "cheerleader.explainPastedCode",
+        "title": "Explain Pasted Code",
         "category": "Cheerleader"
       }
     ],
@@ -125,7 +136,11 @@
         },
         "cheerleader.encouragement.frequency": {
           "type": "string",
-          "enum": ["low", "medium", "high"],
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
           "default": "medium",
           "description": "How frequently encouragement messages are shown"
         },
@@ -133,6 +148,12 @@
           "type": "boolean",
           "default": false,
           "description": "Enable/disable productivity monitoring"
+        },
+        "cheerleader.model.family": {
+          "type": "string",
+          "enum": ["gpt-4o", "gpt-4o-mini", "o1", "o1-mini", "claude-3.5-sonnet"],
+          "default": "gpt-4o",
+          "description": "The Copilot model family to use"
         }
       }
     },
@@ -142,11 +163,11 @@
         "name": "cheerleader",
         "fullName": "Cheerleader AI",
         "description": "Supercharge your dev experience with an anime coding companion",
-        "isSticky": true,
+        "isSticky": false,
         "commands": [
           {
-            "name": "exercise",
-            "description": "Get a random exercise to solve"
+            "name": "explain",
+            "description": "Explain key concept in the code with diagram"
           }
         ]
       }
@@ -162,11 +183,12 @@
   },
   "devDependencies": {
     "@types/dotenv": "^6.1.1",
+    "@types/markdown-it": "^13.0.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
     "@types/node-microphone": "^0.1.4",
     "@types/play-sound": "^1.1.2",
-    "@types/vscode": "^1.54.0",
+    "@types/vscode": "^1.99.1",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.28.0",
     "@typescript-eslint/parser": "^8.28.0",
@@ -183,6 +205,7 @@
     "elevenlabs": "^1.55.0",
     "get-audio-duration": "^4.0.1",
     "get-windows": "^9.2.0",
+    "markdown-it": "^13.0.2",
     "node-microphone": "^0.1.6",
     "play-sound": "^1.1.6",
     "tsx": "^4.19.3",
