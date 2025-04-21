@@ -3,8 +3,10 @@ import MarkdownIt from 'markdown-it';
 
 export class MarkdownRenderer {
     private static webviewPanel: vscode.WebviewPanel | undefined;
+    private static currentContent: string = '';
 
     static renderInSidebar(content: string, title: string = 'Markdown View'): void {
+        this.currentContent = content;
         if (!this.webviewPanel) {
             this.webviewPanel = vscode.window.createWebviewPanel(
                 'markdownView',
@@ -20,6 +22,15 @@ export class MarkdownRenderer {
 
         this.webviewPanel.webview.html = this.getWebviewContent(content);
         this.webviewPanel.reveal();
+    }
+
+    static appendToSidebar(content: string): void {
+        if (!this.webviewPanel) {
+            this.renderInSidebar(content);
+            return;
+        }
+        this.currentContent += '\n\n---\n\n' + content;
+        this.webviewPanel.webview.html = this.getWebviewContent(this.currentContent);
     }
 
     private static getWebviewContent(markdown: string): string {

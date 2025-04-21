@@ -148,6 +148,12 @@
           "type": "boolean",
           "default": false,
           "description": "Enable/disable productivity monitoring"
+        },
+        "cheerleader.model.family": {
+          "type": "string",
+          "enum": ["gpt-4", "o1", "o1-mini", "claude-3.5-sonnet"],
+          "default": "gpt-4",
+          "description": "The Copilot model family to use"
         }
       }
     },

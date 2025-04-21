@@ -9,7 +9,7 @@ import { playTextToSpeech } from '../services/play_voice';
 import { MarkdownRenderer } from "../utils/render_markdown";
 
 const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format:
-
+    There are only 4 types of actions: conversation, comment, edit, and explain shown below:
     \`\`\`json
     [
         {
@@ -31,7 +31,7 @@ const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving p
         },
         {
             "action": "explain",
-            "explanation": "Detailed explanation in proper Markdown code, you can (only if necessary) include Mermaid diagram"
+            "explanation": "Your explanation here."
         }
     ]
     \`\`\`
@@ -209,26 +209,30 @@ class InlineChat {
     private parseResponse(response: string): ActionResponse[] {
         const actions: ActionResponse[] = [];
         
-        // Look for JSON array in code blocks directly
-        const match = response.match(/```json\s*(\[[\s\S]*?\])\s*```/);
-        if (!match) {
-            // If no JSON array found, treat entire response as conversation
+        // Find start of JSON block
+        const startIndex = response.indexOf('```json');
+        if (startIndex === -1) {
             return [{
-                type: 'conversation',
-                content: response.trim()
+            type: 'conversation',
+            content: response.trim()
             }];
         }
 
+        // Find end of JSON block and remove markdown
+        const jsonStart = response.indexOf('[', startIndex);
+        let jsonContent = response.substring(jsonStart);
+        const blockEnd = jsonContent.indexOf('```');
+        if (blockEnd !== -1) {
+            jsonContent = jsonContent.substring(0, blockEnd);
+        }
+
+        // Try parsing the JSON
         try {
-            const jsonContent = match[1];
-            // console.debug('Attempting to parse JSON:', jsonContent);
             const actionArray = JSON.parse(jsonContent);
-            // console.debug('Successfully parsed JSON array:', actionArray);
+            console.debug('Successfully parsed JSON array:', actionArray);
             
             for (const actionData of actionArray) {
-                console.debug('Processing action:', actionData);
                 if (!actionData.action) continue;
-
                 const action: ActionResponse = {
                     type: actionData.action as ActionResponse['type'],
                     content: actionData.content || actionData.comment || actionData.text || actionData.explanation || '',
@@ -237,10 +241,10 @@ class InlineChat {
                 actions.push(action);
             }
         } catch (e) {
-            console.debug('Error parsing JSON array:', e);
+            console.debug('JSON parse error:', e);
             return [{
-                type: 'conversation',
-                content: response.trim()
+            type: 'conversation',
+            content: response.trim()
             }];
         }
 
@@ -349,7 +353,7 @@ class InlineChat {
      * Show an explanation in a side panel
      */
     private async showExplanation(content: string): Promise<void> {
-        MarkdownRenderer.renderInSidebar(content, 'Cheerleader Explanation');
+        MarkdownRenderer.appendToSidebar(content);
     }
 }
 
