@@ -163,11 +163,11 @@
         "name": "cheerleader",
         "fullName": "Cheerleader AI",
         "description": "Supercharge your dev experience with an anime coding companion",
-        "isSticky": true,
+        "isSticky": false,
         "commands": [
           {
-            "name": "exercise",
-            "description": "Get a random exercise to solve"
+            "name": "explain",
+            "description": "Explain key concept in the code with diagram"
           }
         ]
       }
