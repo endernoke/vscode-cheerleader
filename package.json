@@ -63,12 +63,12 @@
       {
         "command": "cheerleader.inlineChat",
         "title": "Inline Chat with Cheerleader",
-        "category": "Cheerleader",
+        "category": "Testing",
         "icon": "$(bell)"
       },
       {
         "command": "cheerleader.inlineChatVoice",
-        "title": "Inline Chat with Cheerleader (Voice)",
+        "title": "Inline Voice Chat with Cheerleader",
         "category": "Cheerleader",
         "icon": "$(bell)"
       },
@@ -102,7 +102,7 @@
         "mac": "cmd+shift+v"
       },
       {
-        "command": "cheerleader.inlineChat",
+        "command": "cheerleader.inlineChatVoice",
         "key": "cmd+shift+c",
         "mac": "cmd+shift+c"
       }
