@@ -5,10 +5,14 @@ Your role is to help developers write better code while keeping their spirits hi
 Respond in cheerful, positive, encouraging, and anime-inspired style and be concise.`;
 
 interface LanguageModelOptions {
-  vendor?: string;
   family?: string;
   customPrompt?: string;
   fileContext?: string;
+}
+
+// Get model family from settings
+function getModelFamily(): string {
+  return vscode.workspace.getConfiguration('cheerleader.model').get<string>('family') ?? "gpt-4";
 }
 
 /**
@@ -25,18 +29,13 @@ export async function getAIResponse(
   options: LanguageModelOptions = {}
 ): Promise<string> {
   try {
-    const defaultOptions = {
-      vendor: "copilot",
-      family: "gpt-4"
-    };
+    // Get model family from settings or use provided option
+    const family = options.family ?? getModelFamily();
     
-    // Merge provided options with defaults
-    const mergedOptions = { ...defaultOptions, ...options };
-
     // Select the language model
     const [model] = await vscode.lm.selectChatModels({
-      vendor: mergedOptions.vendor,
-      family: mergedOptions.family,
+      vendor: "copilot",
+      family: family,
     });
 
     if (!model) {
@@ -67,19 +66,13 @@ export async function getAIResponse(
       );
     }
 
-    // Log messages being sent
-    console.debug('Sending messages to language model:',
-      messages.map(m => ({role: m.role, content: m.content}))
-    );
-
     // Get response from the model
     const chatResponse = await model.sendRequest(
       messages,
-      {},
+      {}, // Using default model settings for now
       new vscode.CancellationTokenSource().token
     );
 
-    console.debug('Got initial response from language model');
 
     // Collect and return the full response
     let fullResponse = "";
@@ -87,7 +80,7 @@ export async function getAIResponse(
       fullResponse += fragment;
     }
 
-    console.debug('Full response from language model:', fullResponse);
+    // console.debug('Full response from language model:', fullResponse);
     return fullResponse;
   } catch (error) {
     console.error("Language model error:", error);

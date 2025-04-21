@@ -59,6 +59,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         case "changeCharacter":
             WebSocketService.getInstance().sendMessage('changeModel', { modelIndex: data.index });
             break;
+        case "updateModelConfig":
+            await this.handleModelConfigUpdate(data.config);
+            break;
       }
     });
   }
@@ -105,9 +108,36 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  private async handleModelConfigUpdate(config: { family: string }) {
+    try {
+      const modelConfig = vscode.workspace.getConfiguration('cheerleader.model');
+      await modelConfig.update('family', config.family, vscode.ConfigurationTarget.Global);
+
+      if (this._view) {
+        this._view.webview.postMessage({
+          type: 'modelConfigValidation',
+          status: 'valid',
+          message: 'Model family updated successfully'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating model family:', error);
+      if (this._view) {
+        this._view.webview.postMessage({
+          type: 'modelConfigValidation',
+          status: 'error',
+          message: `Error updating model family: ${error?.message || 'Unknown error'}`
+        });
+      }
+    }
+  }
+
   private async _getHtmlForWebview(webview: vscode.Webview) {
     const elevenLabsKey = await this._context.secrets.get('elevenlabs-key') || '';
     const huggingFaceKey = await this._context.secrets.get('huggingface-key') || '';
+
+    // Get model configuration
+    const currentFamily = vscode.workspace.getConfiguration('cheerleader.model').get<string>('family') || 'gpt-4';
 
     // Get states from global storage
     const encouragementEnabled = vscode.workspace.getConfiguration().get('cheerleader.encouragement.enabled', false);
@@ -290,6 +320,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                 onchange="saveHuggingFaceKey(this.value)">
                             <div id="huggingface-validation" class="validation-message"></div>
 
+                            <label class="label" for="model-family">Model Family</label>
+                            <select id="model-family" class="api-input" onchange="updateModelConfig()">
+                                <option value="gpt-4" ${currentFamily === 'gpt-4' ? 'selected' : ''}>GPT-4</option>
+                                <option value="o1" ${currentFamily === 'o1' ? 'selected' : ''}>O1 (not supported)</option>
+                                <option value="o1-mini" ${currentFamily === 'o1-mini' ? 'selected' : ''}>O1-Mini (not supported)</option>
+                                <option value="claude-3.5-sonnet" ${currentFamily === 'claude-3.5-sonnet' ? 'selected' : ''}>Claude 3.5 Sonnet</option>
+                            </select>
+                            <div id="model-config-validation" class="validation-message"></div>
+
                             <button onclick="activate()">Activate Cheerleader</button>
                             <button onclick="deactivate()">Deactivate Cheerleader</button>
                         </div>
@@ -332,6 +371,31 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     </div>
 
                     <script>
+                        // Handle messages from the extension
+                        window.addEventListener('message', event => {
+                            const message = event.data;
+                            if (message.type === 'keyValidation' || message.type === 'modelConfigValidation') {
+                                const validationDiv = document.getElementById(
+                                    message.type === 'keyValidation'
+                                        ? message.service + '-validation'
+                                        : 'model-config-validation'
+                                );
+                                if (validationDiv) {
+                                    validationDiv.textContent = message.message;
+                                    validationDiv.className = 'validation-message ' +
+                                        (message.status === 'valid' ? 'success' : 'error');
+                                }
+                            }
+                        });
+
+                        function updateModelConfig() {
+                            const family = document.getElementById('model-family').value;
+                            vscode.postMessage({
+                                type: 'updateModelConfig',
+                                config: { family }
+                            });
+                        }
+
                         const vscode = acquireVsCodeApi();
                         let selectedCharacterIndex = 0;
                         
