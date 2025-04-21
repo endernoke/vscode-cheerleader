@@ -12,7 +12,9 @@ export class EncouragementService {
   private inactivityThreshold: number = 20 * 60 * 1000; // 20 minutes
   private changeThreshold: number = 50; // Number of changes before encouragement
   private inactivityCheckInterval: NodeJS.Timeout | undefined;
-  private lastEncouragementTime: number = 0;
+  private lastDiagnosticsErrorTime: number = Date.now();
+  private lastEncouragementTime: number = Date.now();
+  private lastLongCodingTime: number = Date.now();
   private cooldownPeriod: number = 2 * 60 * 1000; // 2 minutes between encouragements
   static context: vscode.ExtensionContext;
 
@@ -24,163 +26,91 @@ export class EncouragementService {
     coding: [
       {
         filename: "coding0.mp3",
-        text: "You're on fire! Keep up the great work!"
+        text: "Look at you, turning caffeine into code like a proper software alchemist!",
       },
       {
         filename: "coding1.mp3",
-        text: "Look at that code flow! You're in the zone!"
-      },
-      {
-        filename: "coding2.mp3",
-        text: "You're making great progress! Keep it up!"
-      },
-      {
-        filename: "coding3.mp3",
-        text: "Keep going! Your progress is awesome!"
+        text: "Still typing away? Your dedication is matched only by your monitor's eye strain!"
       }
     ],
     buildSuccess: [
       {
         filename: "buildSuccess0.mp3",
-        text: "Build successful! Everything is working perfectly!"
+        text: "Build succeeded! Time to add this momentous occasion to your LinkedIn achievements.",
       },
       {
         filename: "buildSuccess1.mp3",
-        text: "Great job! Your code compiled without any issues!"
-      },
-      {
-        filename: "buildSuccess2.mp3",
-        text: "Success! Your build is ready to go!"
-      },
-      {
-        filename: "buildSuccess3.mp3",
-        text: "Nice work! Build completed successfully!"
+        text: "Your code actually works? That's more stable than my relationships!"
       }
     ],
     buildFailed: [
       {
         filename: "buildFailed0.mp3",
-        text: "Don't worry about that build failure, you'll figure it out!"
+        text: "Don't worry, broken builds are just your computer's way of asking for attention.",
       },
       {
         filename: "buildFailed1.mp3",
-        text: "Errors are just puzzles waiting to be solved. You've got this!"
-      },
-      {
-        filename: "buildFailed2.mp3",
-        text: "Every bug is a learning opportunity. Keep at it!"
-      },
-      {
-        filename: "buildFailed3.mp3",
-        text: "Build failed? No problem! I believe in your debugging skills!"
+        text: "The build failed, but hey, at least you're keeping the Stack Overflow servers busy!",
       }
     ],
     testSuccess: [
       {
         filename: "testSuccess0.mp3",
-        text: "All tests passed! Your code is solid!"
+        text: "All tests passing? Someone check if the tests are actually running!",
       },
       {
         filename: "testSuccess1.mp3",
-        text: "Perfect test run! You're crushing it today!"
-      },
-      {
-        filename: "testSuccess2.mp3",
-        text: "Tests looking great! What a satisfying green check!"
-      },
-      {
-        filename: "testSuccess3.mp3",
-        text: "Test success! Your attention to detail is paying off!"
+        text: "Roses are red, tests are green. The code works on my machine."
       }
     ],
     testFailed: [
       {
         filename: "testFailed0.mp3",
-        text: "Those failing tests are just pointing you in the right direction!"
+        text: "Your tests are just playing hard to get. They'll come around eventually.",
       },
       {
         filename: "testFailed1.mp3",
-        text: "Test failures happen to the best of us. You'll solve it soon!"
-      },
-      {
-        filename: "testFailed2.mp3",
-        text: "Every failing test brings you closer to perfect code!"
-      },
-      {
-        filename: "testFailed3.mp3",
-        text: "Don't let those test failures discourage you. You're making progress!"
+        text: "Pro tip: run tests with the lights off for a better success rate."
       }
     ],
     fileSaved: [
       {
         filename: "fileSaved0.mp3",
-        text: "Nice save! Your work is coming along nicely!"
+        text: "Another save? You must be the most paranoid developer I know!",
       },
       {
         filename: "fileSaved1.mp3",
-        text: "Progress saved! One step closer to completion!"
-      },
-      {
-        filename: "fileSaved2.mp3",
-        text: "Great checkpoint! Your code is evolving well!"
-      },
-      {
-        filename: "fileSaved3.mp3",
-        text: "Save successful! Keep up the momentum!"
+        text: "POV: you're saving files like you're living in the 90s without auto-save."
       }
     ],
     longCoding: [
       {
         filename: "longCoding0.mp3",
-        text: "Wow, you've been coding for a while now! How about a quick stretch?"
+        text: "Good job, your coding session is longer than a Lord of the Rings extended cut!",
       },
       {
         filename: "longCoding1.mp3",
-        text: "Your dedication is impressive! Remember to take short breaks occasionally!"
-      },
-      {
-        filename: "longCoding2.mp3",
-        text: "You're really focused today! Don't forget to rest your eyes from time to time!"
-      },
-      {
-        filename: "longCoding3.mp3",
-        text: "Amazing concentration! A quick water break might help keep your mind sharp!"
+        text: "Remember when you said 'just one more function' three hours ago? Good times!"
       }
     ],
     returningAfterBreak: [
       {
         filename: "returningAfterBreak0.mp3",
-        text: "Welcome back! Ready to continue your awesome work?"
+        text: "Welcome back! Your IDE missed you. It was getting lonely running all those background processes.",
       },
       {
         filename: "returningAfterBreak1.mp3",
-        text: "Nice to see you again! Your project missed you!"
-      },
-      {
-        filename: "returningAfterBreak2.mp3",
-        text: "Refreshed and ready to code? Let's do this!"
-      },
-      {
-        filename: "returningAfterBreak3.mp3",
-        text: "Back to coding? I knew you couldn't stay away for long!"
+        text: "Look who decided to return from their coffee expedition!"
       }
     ],
-    contextSwitch: [
+    bugsFixed: [
       {
-        filename: "contextSwitch0.mp3",
-        text: "Switching tasks? Your versatility is impressive!"
+        filename: "bugsFixed0.mp3",
+        text: "Zero linter errors? Time to take a shower.",
       },
       {
-        filename: "contextSwitch1.mp3",
-        text: "New file, new opportunities to write great code!"
-      },
-      {
-        filename: "contextSwitch2.mp3",
-        text: "Multitasking like a pro! You handle context switching so well!"
-      },
-      {
-        filename: "contextSwitch3.mp3",
-        text: "Changing focus? Your adaptability makes you an excellent developer!"
+        filename: "bugsFixed1.mp3",
+        text: "Congratulations on achieving temporary perfection! Until the next dependency update, at least."
       }
     ]
   };
@@ -240,8 +170,9 @@ export class EncouragementService {
       }
       // If user has been coding for a long time without a significant break
       else if (timeSinceLastActivity < 5 * 60 * 1000 && // Active in last 5 minutes
-               now - this.lastEncouragementTime > 30 * 60 * 1000) { // No encouragement in 30 minutes
+               now - this.lastLongCodingTime > this.inactivityThreshold) { // Long coding session
         this.encourageLongCodingSession();
+        this.lastLongCodingTime = now; // Reset long coding time
       }
     }, 60 * 1000); // Check every minute
   }
@@ -320,7 +251,6 @@ export class EncouragementService {
     if (!editor) return;
     
     this.lastActivity = Date.now();
-    this.provideEncouragement('contextSwitch');
   }
 
   /**
@@ -355,31 +285,26 @@ export class EncouragementService {
   /**
    * Add diagnostics handler to encourage on errors or warnings
    */
-  onDiagnosticsChange(diagnosticCollection: vscode.DiagnosticCollection): void {
-    // Only process if there are actual diagnostics
-    if (!diagnosticCollection) return;
-    
+  onDiagnosticsChange(diagnostics: vscode.Diagnostic[]): void {
     let hasErrors = false;
     let hasWarnings = false;
     
     // Check all diagnostics
-    diagnosticCollection.forEach((uri, diagnostics) => {
-      if (!hasErrors || !hasWarnings) {
-        for (const diagnostic of diagnostics) {
-          if (diagnostic.severity === vscode.DiagnosticSeverity.Error) {
-            hasErrors = true;
-          }
-          if (diagnostic.severity === vscode.DiagnosticSeverity.Warning) {
-            hasWarnings = true;
-          }
-          if (hasErrors && hasWarnings) break;
-        }
+    for (const diagnostic of diagnostics) {
+      if (diagnostic.severity === vscode.DiagnosticSeverity.Error) {
+        hasErrors = true;
       }
-    });
-    
+      if (diagnostic.severity === vscode.DiagnosticSeverity.Warning) {
+        hasWarnings = true;
+      }
+      if (hasErrors && hasWarnings) break;
+    }    
     // Provide appropriate encouragement
-    if (hasErrors) {
-      this.provideEncouragement('buildFailed');
+    if (hasErrors || hasWarnings) {
+      this.lastDiagnosticsErrorTime = Date.now();
+    }
+    if (!hasErrors && !hasWarnings) {
+      this.provideEncouragement('bugsFixed');
     }
   }
 
@@ -431,13 +356,8 @@ export function activateEncouragement(context: vscode.ExtensionContext): void {
   // Listen for diagnostics changes (errors/warnings)
   const diagnosticsListener = vscode.languages.onDidChangeDiagnostics(
     (e) => {
-      for (const uri of e.uris) {
-        const diagnostics = vscode.languages.getDiagnostics(uri);
-        if (diagnostics.length > 0) {
-          service.onDiagnosticsChange(vscode.languages.createDiagnosticCollection());
-          break; // Only need to process once
-        }
-      }
+      let fullDiagnostics = e.uris.map(uri => vscode.languages.getDiagnostics(uri)).flat();
+      service.onDiagnosticsChange(fullDiagnostics);
     }
   );
 
