@@ -151,8 +151,8 @@
         },
         "cheerleader.model.family": {
           "type": "string",
-          "enum": ["gpt-4", "o1", "o1-mini", "claude-3.5-sonnet"],
-          "default": "gpt-4",
+          "enum": ["gpt-4o", "gpt-4o-mini", "o1", "o1-mini", "claude-3.5-sonnet"],
+          "default": "gpt-4o",
           "description": "The Copilot model family to use"
         }
       }

@@ -322,9 +322,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                             <label class="label" for="model-family">Model Family</label>
                             <select id="model-family" class="api-input" onchange="updateModelConfig()">
-                                <option value="gpt-4" ${currentFamily === 'gpt-4' ? 'selected' : ''}>GPT-4</option>
-                                <option value="o1" ${currentFamily === 'o1' ? 'selected' : ''}>O1 (not supported)</option>
-                                <option value="o1-mini" ${currentFamily === 'o1-mini' ? 'selected' : ''}>O1-Mini (not supported)</option>
+                                <option value="gpt-4o" ${currentFamily === 'gpt-4o' ? 'selected' : ''}>GPT-4o</option>
+                                <option value="gpt-4o-mini" ${currentFamily === 'gpt-4o-mini' ? 'selected' : ''}>GPT-4o Mini</option>
+                                <option value="o1" ${currentFamily === 'o1' ? 'selected' : ''}>o1 (not supported)</option>
+                                <option value="o1-mini" ${currentFamily === 'o1-mini' ? 'selected' : ''}>o1-Mini (not supported)</option>
                                 <option value="claude-3.5-sonnet" ${currentFamily === 'claude-3.5-sonnet' ? 'selected' : ''}>Claude 3.5 Sonnet</option>
                             </select>
                             <div id="model-config-validation" class="validation-message"></div>
