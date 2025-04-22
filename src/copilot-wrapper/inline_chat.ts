@@ -108,7 +108,7 @@ class InlineChat {
 
       if (!userQuestion) return;
 
-      // Get AI response
+      // Get AI response using enhanced chat history
       const aiResponse = await getAIResponseWithHistory(
         userQuestion,
         "inline_chat",
@@ -188,7 +188,7 @@ class InlineChat {
         // Get file content
         const fileContent = editor.document.getText();
 
-        // Get AI response with context
+        // Get AI response with context using enhanced chat history
         const aiResponse = await getAIResponseWithHistory(
           transcription,
           "inline_chat",

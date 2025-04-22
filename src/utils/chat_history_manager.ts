@@ -20,6 +20,13 @@ export class ChatHistoryManager {
     private maxTurns: number;
     private history: ChatTurn[] = [];
     private currentMode: string = '';
+    
+    /**
+     * Get the current conversation mode
+     */
+    public getCurrentMode(): string {
+        return this.currentMode;
+    }
 
     private constructor(maxTurns = 10) {
         this.maxTurns = maxTurns;
