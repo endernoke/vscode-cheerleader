@@ -92,6 +92,11 @@
         "command": "cheerleader.explainPastedCode",
         "title": "Explain Pasted Code",
         "category": "Cheerleader"
+      },
+      {
+        "command": "cheerleader.togglePasteMonitoring",
+        "title": "Toggle Paste Monitoring",
+        "category": "Cheerleader"
       }
     ],
     "menus": {},
@@ -149,9 +154,20 @@
           "default": false,
           "description": "Enable/disable productivity monitoring"
         },
+        "cheerleader.paste.monitoringEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable paste monitoring"
+        },
         "cheerleader.model.family": {
           "type": "string",
-          "enum": ["gpt-4o", "gpt-4o-mini", "o1", "o1-mini", "claude-3.5-sonnet"],
+          "enum": [
+            "gpt-4o",
+            "gpt-4o-mini",
+            "o1",
+            "o1-mini",
+            "claude-3.5-sonnet"
+          ],
           "default": "gpt-4o",
           "description": "The Copilot model family to use"
         }
@@ -199,6 +215,7 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^3.4.2",
+    "@vscode/prompt-tsx": "^0.4.0-alpha.3",
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
     "electron": "^35.1.1",

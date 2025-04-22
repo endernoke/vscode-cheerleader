@@ -4,9 +4,10 @@ import * as path from 'path';
 import { v4 as uuid } from 'uuid';
 import { AudioRecorder } from '../services/record_speech';
 import { convertSpeechToText } from '../services/speech_to_text';
-import { getAIResponse } from '../services/language_model';
+import { getAIResponse, getAIResponseWithHistory } from '../services/language_model';
 import { playTextToSpeech } from '../services/play_voice';
 import { MarkdownRenderer } from "../utils/render_markdown";
+import { ChatHistoryManager } from "../utils/chat_history_manager";
 
 const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format:
     There are only 4 types of actions: conversation, comment, edit, and explain shown below:
@@ -62,6 +63,7 @@ class InlineChat {
   private isProcessing = false;
   private recordingsDir: string;
   private static firstExplanation = true;
+  private historyManager: ChatHistoryManager;
 
   /**
    * Initialize the inline chat
@@ -76,6 +78,9 @@ class InlineChat {
     if (!fs.existsSync(this.recordingsDir)) {
       fs.mkdirSync(this.recordingsDir, { recursive: true });
     }
+
+    // Initialize chat history manager
+    this.historyManager = ChatHistoryManager.getInstance();
   }
 
   /**
@@ -104,10 +109,14 @@ class InlineChat {
       if (!userQuestion) return;
 
       // Get AI response
-      const aiResponse = await getAIResponse(userQuestion, {
-        customPrompt: INLINE_CHAT_PROMPT,
-        fileContext: fileContent,
-      });
+      const aiResponse = await getAIResponseWithHistory(
+        userQuestion,
+        "inline_chat",
+        {
+          customPrompt: INLINE_CHAT_PROMPT,
+          fileContext: fileContent,
+        }
+      );
 
       // Parse and process the response
       const actions = this.parseResponse(aiResponse);
@@ -180,10 +189,14 @@ class InlineChat {
         const fileContent = editor.document.getText();
 
         // Get AI response with context
-        const aiResponse = await getAIResponse(transcription, {
-          customPrompt: INLINE_CHAT_PROMPT,
-          fileContext: fileContent,
-        });
+        const aiResponse = await getAIResponseWithHistory(
+          transcription,
+          "inline_chat",
+          {
+            customPrompt: INLINE_CHAT_PROMPT,
+            fileContext: fileContent,
+          }
+        );
 
         // Parse and process the response
         const actions = this.parseResponse(aiResponse);
