@@ -1,4 +1,6 @@
+import { renderPrompt } from "@vscode/prompt-tsx";
 import * as vscode from "vscode";
+import { ChatHistoryManager } from "../utils/chat_history_manager";
 
 const BASE_PROMPT = `You are Cheerleader, an enthusiastic and supportive coding companion!
 Your role is to help developers write better code while keeping their spirits high with positive energy.
@@ -151,6 +153,128 @@ export async function getAIResponseWithTools(
         toolResponse.push(toolResult);
       }
     }
+
+    return fullResponse;
+  } catch (error) {
+    console.error("Language model error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get AI response with conversation history support.
+ * This maintains the context of the conversation while preventing the history from growing too large.
+ * @param userText - The user's message to the AI.
+ * @param documentUri - The URI of the document to which the conversation belongs.
+ * @param options - Additional options for the language model.
+ * @returns The AI's response to the user's message.
+ * 
+ * The order we construct the messages is important:
+ * 1. We start with the base prompt.
+ * 2. We add the custom prompt if provided.
+ * 3. We add the user message if provided.
+ * 4. We add the conversation history.
+ * 5. We add the file context if provided.
+ * 
+ * This can be improved using prompt-tsx in the future...
+ */
+export async function getAIResponseWithHistory(
+  userText: string | null = null,
+  mode: string,
+  options: LanguageModelOptions = {}
+): Promise<string> {
+  try {
+    // Get model family from settings or use provided option
+    const family = options.family ?? getModelFamily();
+
+    // Select the language model
+    const [model] = await vscode.lm.selectChatModels({
+      vendor: "copilot",
+      family: family,
+    });
+
+    if (!model) {
+      throw new Error("No language model available");
+    }
+
+    // const { messages } = await renderPrompt(
+    //       BASE_PROMPT,
+    //       { userQuery: userText },
+    //       { modelMaxPromptTokens: 4096 },
+    //       model
+    //     )
+
+    // Get chat history and ensure we're in the right mode
+    const historyManager = ChatHistoryManager.getInstance();
+    historyManager.switchMode(mode);
+    const history = historyManager.getHistory();
+
+    // Prepare messages starting with base prompt
+    const messages = [vscode.LanguageModelChatMessage.User(BASE_PROMPT)];
+
+    // Add custom prompt if provided
+    if (options.customPrompt) {
+      messages.push(vscode.LanguageModelChatMessage.User(options.customPrompt));
+    }
+
+    // Add current user message if provided
+    if (userText) {
+      messages.push(vscode.LanguageModelChatMessage.User(userText));
+    }
+
+    messages.push(
+      vscode.LanguageModelChatMessage.User(
+        "The fowlowing is the conversation history:"
+      )
+    );
+
+    // Add conversation history
+    for (const turn of history) {
+      if (turn.role === "user") {
+        messages.push(vscode.LanguageModelChatMessage.User(turn.content));
+      } else if (turn.role === "assistant") {
+        messages.push(vscode.LanguageModelChatMessage.Assistant(turn.content));
+      } else if (turn.role === "system") {
+        // System messages are treated as user messages since VS Code API doesn't have System type
+        messages.push(vscode.LanguageModelChatMessage.User(turn.content));
+      }
+    }
+
+    // Add file context if provided (to the end of the messages)
+    if (options.fileContext) {
+      messages.push(
+        vscode.LanguageModelChatMessage.User(
+          `File context: ${options.fileContext}`
+        )
+      );
+    }
+
+    // Get response from the model
+    const chatResponse = await model.sendRequest(
+      messages,
+      {}, // Using default model settings for now
+      new vscode.CancellationTokenSource().token
+    );
+
+    // Collect the full response
+    let fullResponse = "";
+    for await (const fragment of chatResponse.text) {
+      fullResponse += fragment;
+    }
+
+    // Add the conversation turns to history
+    if (userText) {
+      historyManager.addTurn({
+        role: "user",
+        content: userText,
+        timestamp: new Date(),
+      });
+    }
+    historyManager.addTurn({
+      role: "assistant",
+      content: fullResponse,
+      timestamp: new Date(),
+    });
 
     return fullResponse;
   } catch (error) {

@@ -39,29 +39,34 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
         case "activate":
-            vscode.commands.executeCommand("cheerleader.launchOverlay");
-            break;
+          vscode.commands.executeCommand("cheerleader.launchOverlay");
+          break;
         case "deactivate":
-            vscode.commands.executeCommand("cheerleader.killOverlay");
-            break;
+          vscode.commands.executeCommand("cheerleader.killOverlay");
+          break;
         case "toggleEncouragement":
-            vscode.commands.executeCommand("cheerleader.toggleEncouragement");
-            break;
+          vscode.commands.executeCommand("cheerleader.toggleEncouragement");
+          break;
         case "toggleProductivity":
-            vscode.commands.executeCommand("cheerleader.toggleMonitoringRotting");
-            break;
+          vscode.commands.executeCommand("cheerleader.toggleMonitoringRotting");
+          break;
+        case "togglePasteMonitoring":
+          vscode.commands.executeCommand("cheerleader.togglePasteMonitoring");
+          break;
         case "saveElevenLabsKey":
-            await this.handleApiKeyUpdate('elevenlabs', data.value);
-            break;
+          await this.handleApiKeyUpdate("elevenlabs", data.value);
+          break;
         case "saveHuggingFaceKey":
-            await this.handleApiKeyUpdate('huggingface', data.value);
-            break;
+          await this.handleApiKeyUpdate("huggingface", data.value);
+          break;
         case "changeCharacter":
-            WebSocketService.getInstance().sendMessage('changeModel', { modelIndex: data.index });
-            break;
+          WebSocketService.getInstance().sendMessage("changeModel", {
+            modelIndex: data.index,
+          });
+          break;
         case "updateModelConfig":
-            await this.handleModelConfigUpdate(data.config);
-            break;
+          await this.handleModelConfigUpdate(data.config);
+          break;
       }
     });
   }
@@ -144,6 +149,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const productivityEnabled = vscode.workspace
       .getConfiguration()
       .get("cheerleader.productivity.monitoringEnabled", false);
+    const pasteMeEnabled = vscode.workspace
+      .getConfiguration()
+      .get("cheerleader.paste.monitoringEnabled", false);
 
     // Create character paths for the grid
     const characters = [
@@ -322,11 +330,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                             <label class="label" for="model-family">Model Family</label>
                             <select id="model-family" class="api-input" onchange="updateModelConfig()">
-                                <option value="gpt-4o" ${currentFamily === 'gpt-4o' ? 'selected' : ''}>GPT-4o</option>
-                                <option value="gpt-4o-mini" ${currentFamily === 'gpt-4o-mini' ? 'selected' : ''}>GPT-4o Mini</option>
-                                <option value="o1" ${currentFamily === 'o1' ? 'selected' : ''}>o1 (not supported)</option>
-                                <option value="o1-mini" ${currentFamily === 'o1-mini' ? 'selected' : ''}>o1-Mini (not supported)</option>
-                                <option value="claude-3.5-sonnet" ${currentFamily === 'claude-3.5-sonnet' ? 'selected' : ''}>Claude 3.5 Sonnet</option>
+                                <option value="gpt-4o" ${
+                                  currentFamily === "gpt-4o" ? "selected" : ""
+                                }>GPT-4o</option>
+                                <option value="gpt-4o-mini" ${
+                                  currentFamily === "gpt-4o-mini"
+                                    ? "selected"
+                                    : ""
+                                }>GPT-4o Mini</option>
+                                <option value="o1" ${
+                                  currentFamily === "o1" ? "selected" : ""
+                                }>o1 (not supported)</option>
+                                <option value="o1-mini" ${
+                                  currentFamily === "o1-mini" ? "selected" : ""
+                                }>o1-Mini (not supported)</option>
+                                <option value="claude-3.5-sonnet" ${
+                                  currentFamily === "claude-3.5-sonnet"
+                                    ? "selected"
+                                    : ""
+                                }>Claude 3.5 Sonnet</option>
                             </select>
                             <div id="model-config-validation" class="validation-message"></div>
 
@@ -341,11 +363,17 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         </div>
                         <div class="section-content">
                             <div class="character-grid">
-                                ${characterPaths.map((path, index) => `
+                                ${characterPaths
+                                  .map(
+                                    (path, index) => `
                                     <div class="character-item" data-index="${index}" onclick="selectCharacter(${index})">
-                                        <img src="${path}" alt="Character ${index+1}" />
+                                        <img src="${path}" alt="Character ${
+                                      index + 1
+                                    }" />
                                     </div>
-                                `).join('')}
+                                `
+                                  )
+                                  .join("")}
                             </div>
                             <button onclick="changeCharacter()">Select Character</button>
                         </div>
@@ -368,6 +396,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                 }</b>
                             </p>
                             <button onclick="toggleProductivity()">Toggle Productivity</button>
+                            <p id="paste-me-status" class="status">
+                                Paste Me: <b>${
+                                  pasteMeEnabled ? "Enabled" : "Disabled"
+                                }</b>
+                            </p>
+                            <button onclick="togglePasteMe()">Toggle Paste Me</button>
                         </div>
                     </div>
 
@@ -423,12 +457,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             }
                         });
 
+                        // Functions to handle overlay startup and shutdown
                         function activate() {
                             vscode.postMessage({ type: 'activate' });
                         }
                         function deactivate() {
                             vscode.postMessage({ type: 'deactivate' });
                         }
+
+                        // Toggle functions
                         function toggleEncouragement() {
                             vscode.postMessage({ type: 'toggleEncouragement' });
                             const status = document.getElementById('encouragement-status');
@@ -447,6 +484,17 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                 status.className = 'status ' + (isEnabled ? 'status-enabled' : 'status-disabled');
                             }
                         }
+                        function togglePasteMe() {
+                            vscode.postMessage({ type: 'togglePasteMonitoring' });
+                            const status = document.getElementById('paste-me-status');
+                            if (status) {
+                                const isEnabled = !status.textContent.includes('Enabled');
+                                status.textContent = 'Paste Me: ' + (isEnabled ? 'Enabled' : 'Disabled');
+                                status.className = 'status ' + (isEnabled ? 'status-enabled' : 'status-disabled');
+                            }
+                        }
+
+                        // API key save functions
                         function saveElevenLabsKey(value) {
                             vscode.postMessage({ type: 'saveElevenLabsKey', value });
                         }
