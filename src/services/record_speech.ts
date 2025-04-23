@@ -4,19 +4,19 @@ import { Writable } from "stream";
 import { join } from "path";
 import fs from "fs";
 import { SoundPlayer } from "./play_voice";
+import { v4 as uuid } from "uuid";
 
-/**
- * "Pray, let us mark the thy voice of grace and wisdom, for it is
- * the voice of George, the great and powerful." And lo, George did
- * grant them the gift of the AudioRecorder, and the people did rejoice.
- * -- The Georgeiste Manifesto, Chapter 1, Verse 5
- */
 export class AudioRecorder {
   private static microphone: mic;
   private static isRecording: boolean = false;
   private static statusBar: vscode.StatusBarItem;
   private static audioChunks: Buffer[] = [];
   private static micStream: any;
+  private static recordingsDir: string;
+  private static silenceStart: number | null = null;
+  private static lastSoundTime: number | null = null;
+  private static SILENCE_THRESHOLD = 40; // Adjust based on testing
+  private static MAX_SILENCE_DURATION = 3000; // 2 seconds of silence before stopping
 
   static initialize(context: vscode.ExtensionContext) {
     this.microphone = new mic();
@@ -24,104 +24,157 @@ export class AudioRecorder {
       vscode.StatusBarAlignment.Right,
       100
     );
-    this.statusBar.command = "cheerleader.stopRecording";
-    
-    // Set up microphone event listeners
-    // this.microphone.on('info', (info) => {
-    //   console.log('Microphone info:', info);
-    // });
-    
-    // this.microphone.on('error', (error) => {
-    //   console.error('Microphone error:', error);
-    //   vscode.window.showErrorMessage(`Microphone error: ${error}`);
-    //   this.stopRecording();
-    // });
-    
+    this.statusBar.command = "cheerleader.record";
+
+    this.recordingsDir = join(context.globalStorageUri.fsPath, "recordings");
+    if (!fs.existsSync(this.recordingsDir)) {
+      fs.mkdirSync(this.recordingsDir, { recursive: true });
+    }
+
     return this.statusBar;
   }
 
-  static startRecording(): Promise<void> {
+  static async record(): Promise<string> {
+    if (this.isRecording) {
+      throw new Error("Already recording");
+    }
+
+    return new Promise((resolve, reject) => {
+      this.startRecording()
+        .then(() => {
+          // Recording will be stopped by silence detection
+        })
+        .catch(reject);
+
+      const checkResult = setInterval(() => {
+        if (!this.isRecording) {
+          clearInterval(checkResult);
+          const result = this.getLastRecording();
+          if (result.filePath) {
+            resolve(result.filePath);
+          } else {
+            reject(new Error("No audio data was recorded"));
+          }
+        }
+      }, 100);
+    });
+  }
+
+  private static async startRecording(): Promise<void> {
     if (this.isRecording) {
       return Promise.reject(new Error("Already recording"));
     }
 
     return new Promise((resolve, reject) => {
       try {
+        console.log("[AudioRecorder] Starting recording session");
         this.isRecording = true;
         this.audioChunks = [];
+        this.silenceStart = null;
+        this.lastSoundTime = Date.now();
         this.updateStatus("$(mic-filled) Recording...");
 
-        // Start the microphone recording
         this.micStream = this.microphone.startRecording();
-        
-        console.log("Recording started");
-        
-        // Create a writable stream to collect audio chunks
+        console.log("[AudioRecorder] Microphone stream created");
+
         const writableStream = new Writable({
           write: (chunk, encoding, next) => {
-            console.log(`Received chunk of size: ${chunk.length}`);
+            if (!this.isRecording) {
+              next();
+              return;
+            }
+
             this.audioChunks.push(chunk);
+
+            // Calculate audio level from chunk
+            const audioLevel = this.calculateAudioLevel(chunk);
+            console.log(`[AudioRecorder] Audio level: ${audioLevel}`);
+
+            // Detect silence
+            if (audioLevel > this.SILENCE_THRESHOLD) {
+              if (!this.silenceStart) {
+                this.silenceStart = Date.now();
+                console.log("[AudioRecorder] Silence started");
+              }
+
+              const silenceDuration = Date.now() - this.silenceStart;
+              if (silenceDuration > this.MAX_SILENCE_DURATION) {
+                console.log(`[AudioRecorder] Silence threshold reached (${silenceDuration}ms)`);
+                this.stopRecording();
+              }
+            } else {
+              this.silenceStart = null;
+              this.lastSoundTime = Date.now();
+              this.updateStatus("$(mic-filled) Recording (Sound Detected)");
+            }
+
             next();
-          }
+          },
         });
-        
-        // Pipe the microphone stream to our writable stream
+
         this.micStream.pipe(writableStream);
-        
+        console.log("[AudioRecorder] Pipe connected to writable stream");
+
         this.micStream.on("error", (error: Error) => {
-          console.error("Stream error:", error);
+          console.error("[AudioRecorder] Stream error:", error);
           reject(error);
         });
-        
+
         resolve();
       } catch (error) {
+        console.error("[AudioRecorder] Recording setup failed:", error);
         this.stopRecording();
-        console.error("Failed to start recording:", error);
         reject(error);
       }
     });
   }
 
-  static stopRecording(saveFile: boolean = false): { buffer: Buffer, filePath?: string } {
+  private static calculateAudioLevel(chunk: Buffer): number {
+    // Convert buffer to 16-bit samples
+    const samples = new Int16Array(chunk.buffer);
+
+    // Calculate RMS (Root Mean Square)
+    let sum = 0;
+    for (let i = 0; i < samples.length; i++) {
+      sum += samples[i] * samples[i];
+    }
+    const rms = Math.sqrt(sum / samples.length);
+
+    // Convert to dB
+    const db = 20 * Math.log10(rms / 32767); // 32767 is max value for 16-bit audio
+
+    return Math.max(0, -db); // Inverse dB scale so higher number = louder
+  }
+
+  private static getLastRecording(): { buffer: Buffer; filePath?: string } {
+    const audioBuffer = Buffer.concat(this.audioChunks);
+    if (audioBuffer.length > 0) {
+      const filePath = join(this.recordingsDir, `recording-${uuid()}.wav`);
+      fs.writeFileSync(filePath, audioBuffer);
+      return { buffer: audioBuffer, filePath };
+    }
+    return { buffer: audioBuffer };
+  }
+
+  private static stopRecording(): void {
     if (!this.isRecording) {
-      return { buffer: Buffer.concat([]) };
+      console.log("[AudioRecorder] Stop called but not recording");
+      return;
     }
 
+    console.log("[AudioRecorder] Stopping recording");
     this.isRecording = false;
     this.updateStatus("");
-    
-    // Stop the microphone recording
+
     if (this.micStream) {
       this.micStream.unpipe();
       this.micStream = null;
+      console.log("[AudioRecorder] Microphone stream cleaned up");
     }
     this.microphone.stopRecording();
-    
-    console.log(`Recording stopped. Collected ${this.audioChunks.length} chunks.`);
+    console.log("[AudioRecorder] Microphone stopped");
 
-    // Combine all chunks into one buffer
-    const audioBuffer = Buffer.concat(this.audioChunks);
-    console.log(`Total buffer size: ${audioBuffer.length} bytes`);
-    
-    if (saveFile && audioBuffer.length > 0) {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const recordingsDir = join(__dirname, '..', '..', 'recordings');
-      
-      // Create recordings directory if it doesn't exist
-      if (!fs.existsSync(recordingsDir)) {
-        fs.mkdirSync(recordingsDir, { recursive: true });
-      }
-      
-      const filePath = join(recordingsDir, `recording-${timestamp}.wav`);
-      
-      // Save the audio buffer to a file
-      fs.writeFileSync(filePath, audioBuffer);
-      console.log(`Saved recording to: ${filePath}`);
-      
-      return { buffer: audioBuffer, filePath };
-    }
-    
-    return { buffer: audioBuffer };
+    console.log(`[AudioRecorder] Recording complete. Collected ${this.audioChunks.length} chunks`);
   }
 
   private static updateStatus(text: string) {
@@ -131,46 +184,27 @@ export class AudioRecorder {
 }
 
 export function registerAudioCommands(context: vscode.ExtensionContext) {
-  // Initialize recorder
   const statusBar = AudioRecorder.initialize(context);
   context.subscriptions.push(statusBar);
 
-  // Start recording command
-  let startCommand = vscode.commands.registerCommand(
-    "cheerleader.startRecording",
+  let recordCommand = vscode.commands.registerCommand(
+    "cheerleader.record",
     async () => {
       try {
-        await AudioRecorder.startRecording();
-        vscode.window.showInformationMessage("Recording started");
+        console.log("Starting recording...");
+        const filePath = await AudioRecorder.record();
+        vscode.window.showInformationMessage(`Recording saved to: ${filePath}`);
+        
+        try {
+          await SoundPlayer.playFile(filePath);
+        } catch (playError) {
+          vscode.window.showErrorMessage(`Failed to play recording: ${playError}`);
+        }
       } catch (error) {
         vscode.window.showErrorMessage(`Recording failed: ${error}`);
       }
     }
   );
 
-  // Stop recording and process audio
-  let stopCommand = vscode.commands.registerCommand(
-    "cheerleader.stopRecording",
-    async () => {
-      try {
-        const result = AudioRecorder.stopRecording(true);
-        vscode.window.showInformationMessage(`Recording stopped - ${result.buffer.length} bytes recorded`);
-        
-        if (result.filePath && result.buffer.length > 0) {
-          // Play the recorded audio
-          try {
-            await SoundPlayer.playFile(result.filePath);
-          } catch (playError) {
-            vscode.window.showErrorMessage(`Failed to play recording: ${playError}`);
-          }
-        } else if (result.buffer.length === 0) {
-          vscode.window.showWarningMessage("No audio data was recorded");
-        }
-      } catch (error) {
-        vscode.window.showErrorMessage(`Processing failed: ${error}`);
-      }
-    }
-  );
-
-  context.subscriptions.push(startCommand, stopCommand);
+  context.subscriptions.push(recordCommand);
 }

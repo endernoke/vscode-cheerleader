@@ -46,13 +46,8 @@
         "category": "Testing"
       },
       {
-        "command": "cheerleader.startRecording",
+        "command": "cheerleader.record",
         "title": "Start Voice Recording",
-        "category": "Testing"
-      },
-      {
-        "command": "cheerleader.stopRecording",
-        "title": "Stop Voice Recording",
         "category": "Testing"
       },
       {

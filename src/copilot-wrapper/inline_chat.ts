@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import * as fs from 'fs';
 import * as path from 'path';
-import { v4 as uuid } from 'uuid';
 import { AudioRecorder } from '../services/record_speech';
 import { convertSpeechToText } from '../services/speech_to_text';
 import { getAIResponse, getAIResponseWithHistory } from '../services/language_model';
@@ -144,80 +143,44 @@ class InlineChat {
 
     try {
       this.isProcessing = true;
+      vscode.window.showInformationMessage("Recording...");
 
-      // Record audio
-      await AudioRecorder.startRecording();
+      // Use the new single record() method
+      const audioFilePath = await AudioRecorder.record();
 
-      // Show recording notification with cancel button
-      const recordingPrompt = await vscode.window.showInformationMessage(
-        "Recording... Click 'Stop' when you're done speaking",
-        { modal: false },
-        "Stop"
-      );
-
-      if (!recordingPrompt) {
-        vscode.window.showInformationMessage("Recording cancelled");
-        return;
+      // Convert speech to text
+      const transcription = await convertSpeechToText(audioFilePath);
+      if (!transcription || transcription.trim().length === 0) {
+        throw new Error("Failed to transcribe speech or no speech detected");
       }
 
-      // Stop recording and get audio data
-      const recordingResult = AudioRecorder.stopRecording(false);
-
-      if (recordingResult.buffer.length === 0) {
-        vscode.window.showWarningMessage("No audio was recorded");
-        return;
-      }
-
-      // Save the buffer to a temporary file
-      const tempFilePath = path.join(
-        this.recordingsDir,
-        `recording-${uuid()}.wav`
+      // Get file content and AI response
+      const fileContent = editor.document.getText();
+      const aiResponse = await getAIResponseWithHistory(
+        transcription,
+        "inline_chat",
+        {
+          customPrompt: INLINE_CHAT_PROMPT,
+          fileContext: fileContent,
+        }
       );
-      fs.writeFileSync(tempFilePath, recordingResult.buffer);
 
+      // Parse and process the response
+      const actions = this.parseResponse(aiResponse);
+      await this.processActions(editor, actions);
+
+      // Clean up the temporary file
       try {
-        // Convert speech to text
-        const transcription = await convertSpeechToText(tempFilePath);
-        if (!transcription || transcription.trim().length === 0) {
-          throw new Error("Failed to transcribe speech or no speech detected");
+        if (fs.existsSync(audioFilePath)) {
+          fs.unlinkSync(audioFilePath);
         }
-
-        // Show transcription
-        // vscode.window.showInformationMessage(`You said: ${transcription}`);
-
-        // Get file content
-        const fileContent = editor.document.getText();
-
-        // Get AI response with context
-        const aiResponse = await getAIResponseWithHistory(
-          transcription,
-          "inline_chat",
-          {
-            customPrompt: INLINE_CHAT_PROMPT,
-            fileContext: fileContent,
-          }
-        );
-
-        // Parse and process the response
-        const actions = this.parseResponse(aiResponse);
-
-        await this.processActions(editor, actions);
-      } finally {
-        // Clean up the temporary file
-        try {
-          if (fs.existsSync(tempFilePath)) {
-            fs.unlinkSync(tempFilePath);
-          }
-        } catch (cleanupError) {
-          console.error("Error cleaning up temporary file:", cleanupError);
-        }
+      } catch (cleanupError) {
+        console.error("Error cleaning up temporary file:", cleanupError);
       }
+
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      vscode.window.showErrorMessage(
-        `Voice interaction failed: ${errorMessage}`
-      );
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      vscode.window.showErrorMessage(`Voice interaction failed: ${errorMessage}`);
       console.error("Voice interaction error:", error);
     } finally {
       this.isProcessing = false;
