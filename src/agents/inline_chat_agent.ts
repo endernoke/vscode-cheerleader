@@ -1,3 +1,4 @@
+import { TextEditor } from 'vscode';
 import { CheerleaderAgent } from './cheerleader_agent';
 
 const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format:
@@ -35,11 +36,35 @@ const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving p
  * Extends the base CheerleaderAgent with inline chat specific behavior.
  */
 export class InlineChatAgent extends CheerleaderAgent {
-  /**
-   * Get the specialized prompt for inline chat interactions
-   * @returns The prompt string that guides AI responses
-   */
-  getPrompt(): string {
-    return INLINE_CHAT_PROMPT;
-  }
+    /**
+     * Get the specialized prompt for inline chat interactions
+     * @returns The prompt string that guides AI responses
+     */
+    getPrompt(): string {
+        return INLINE_CHAT_PROMPT;
+    }
+
+    /**
+     * Get the mode for inline chat interactions
+     * @returns The mode string for inline chat
+     */
+    get mode(): string {
+        return "inline_chat";
+    }
+
+    /**
+     * Start a voice interaction with the editor.
+     * This is the most basic implementation simply wraps the base class.
+     */
+    startVoiceInteraction(editor: TextEditor): Promise<void> {
+        return this.processInteraction(editor, this.getUserInputFromAudio);
+    }
+
+    /**
+     * Start a text interaction with the editor.
+     * This is the most basic implementation simply wraps the base class.
+     */
+    startTextInteraction(editor: TextEditor): Promise<void> {
+        return this.processInteraction(editor, this.getUserInputFromText);
+    }
 }

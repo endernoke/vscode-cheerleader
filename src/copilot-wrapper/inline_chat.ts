@@ -19,7 +19,7 @@ export function registerInlineChatCommand(context: vscode.ExtensionContext): voi
             return;
         }
         
-        await inlineChatAgent.startInteraction(editor);
+        await inlineChatAgent.startTextInteraction(editor);
     });
     
     // Register voice-based interaction

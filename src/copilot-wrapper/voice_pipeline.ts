@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as fs from 'fs';
 import { AudioRecorder } from '../services/record_speech';
-import { convertSpeechToText } from '../services/speech_to_text_local';
+import { convertSpeechToText } from '../services/speech_to_text';
 import { getAIResponse } from '../services/language_model';
 import { playTextToSpeech } from '../services/play_voice';
 

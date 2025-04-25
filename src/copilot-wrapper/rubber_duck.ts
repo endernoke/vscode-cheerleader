@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { RubberDuckAgent } from "../agents/rubber_duck_agent";
-import { debug } from "console";
 
 /**
  * The debuggers shall rejoice, for the Kingdom of George is upon them.

@@ -26,18 +26,24 @@ export abstract class CheerleaderAgent {
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
+
     // Initialize recordings directory
     this.recordingsDir = path.join(this.context.globalStorageUri.fsPath, "recordings");
     if (!fs.existsSync(this.recordingsDir)) {
       fs.mkdirSync(this.recordingsDir, { recursive: true });
     }
-    // Initialize chat history manager
+
     this.historyManager = ChatHistoryManager.getInstance();
-    // Initialize action registry
     this.actionRegistry = ActionHandlerRegistry.getInstance();
     this.registerActionHandlers();
   }
 
+  /**
+   * Registers the basic action handlers for the agent.
+   * This method is called in the constructor to ensure that all
+   * action handlers are available when the agent is created.
+   * @note When your agent has addition actions, you must write a separate function in its consturctor
+   */
   private registerActionHandlers(): void {
     const registry = this.actionRegistry;
     registry.registerHandler(new ConversationHandler());
@@ -47,38 +53,118 @@ export abstract class CheerleaderAgent {
     registry.registerHandler(new HighlightHandler());
   }
 
-  // Each agent must implement its specialized prompt.
+  /**
+   * The following are abstract virtual methods that must be implemented by each agent.
+   * - getPrompt(): string, specialized prompt for the agent.
+   * - mode: string, the mode of the agent.
+   * - startVoiceInteraction(editor: vscode.TextEditor): Promise<void>, method to start voice interaction.
+   */
   abstract getPrompt(): string;
+  abstract get mode(): string;
+  abstract startVoiceInteraction(editor: vscode.TextEditor): Promise<void>
 
   /**
-   * Start a text-based interaction.
-   * @param editor Active text editor.
+   * The following are abstract methods that are not enforced to implement in the base class.
+   * This is to allow for different types of text interactions.
+   * - startTextInteraction(editor: vscode.TextEditor): Promise<void>, method to start text interaction.
    */
-  async startInteraction(editor: vscode.TextEditor): Promise<void> {
+  async startTextInteraction(editor: vscode.TextEditor): Promise<void> {
+    throw new Error("Text Interaction not implemented for this agent");
+  }
+
+  // The following utilities methods are marked protected so you can override them in
+  // the subclass or just use them as is.
+
+  /**
+   * Get user input for the interaction.
+   * This can be overridden or used as is in subclasses.
+   * @returns User input string or undefined if cancelled.
+   */
+  protected async getUserInputFromText(): Promise<string | undefined> {
+    const userInput = await vscode.window.showInputBox({
+      prompt: "Ask a question about your code",
+      placeHolder: "E.g., How can I improve this function?"
+    });
+    return userInput;
+  }
+
+  /**
+   * Get user input for the interaction using voice.
+   * This can be overridden or used as is in subclasses.
+   * @returns User input string or undefined if cancelled.
+   */
+  protected async getUserInputFromAudio(): Promise<string | undefined> {
+    try {
+      // Use the AudioRecorder's record method which handles file saving
+      const audioFilePath = await AudioRecorder.record();
+      if (!audioFilePath) {
+        vscode.window.showWarningMessage("No audio was recorded");
+        return;
+      }
+      // Convert speech to text
+      const transcription = await convertSpeechToText(audioFilePath);
+      if (!transcription || transcription.trim().length === 0) {
+        throw new Error("Failed to transcribe speech or no speech detected");
+      }
+
+      // cleanup the temporary audio file
+      try {
+        if (fs.existsSync(audioFilePath)) {
+          fs.unlinkSync(audioFilePath);
+        }
+      } catch (cleanupError) {
+        console.error("Error cleaning up temporary file:", cleanupError);
+      }
+      return transcription;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      vscode.window.showErrorMessage(`Voice interaction failed: ${errorMessage}`);
+      console.error("Voice interaction error:", error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Process the interaction with the AI.
+   * This method handles the interaction logic and error handling.
+   * @param editor Active text editor.
+   * @param getUserInput Function to get user input (text or voice).
+   * @note This encapsulate the logic for processing the interaction,
+   *       including getting the user input, sending it to the AI,
+   *       and processing the AI's response. Most often you will
+   *       simply call this method in your agent's interaction methods.
+   */
+  protected async processInteraction(
+    editor: vscode.TextEditor,
+    getUserInput: () => Promise<string | undefined>
+  ): Promise<void> {
     if (this.isProcessing) {
       vscode.window.showInformationMessage("Already processing an interaction");
       return;
     }
+
     try {
       this.isProcessing = true;
+
       // Get file content
       const fileContent = editor.document.getText();
+
       // Get user question
-      const userQuestion = await vscode.window.showInputBox({
-        prompt: "Ask a question about your code",
-        placeHolder: "E.g., How can I improve this function?"
-      });
+      const userQuestion = await getUserInput();
       if (!userQuestion) return;
 
       // Get AI response using the specialized prompt
       const aiResponse = await getAIResponseWithHistory(
         userQuestion,
-        "inline_chat",
+        this.mode,
         {
           customPrompt: this.getPrompt(),
           fileContext: fileContent
         }
       );
+
+      console.log("AI response:", aiResponse);
+      console.log("mode:", this.mode);
 
       // Parse and process actions from the AI response
       const actions = this.parseResponse(aiResponse);
@@ -92,63 +178,19 @@ export abstract class CheerleaderAgent {
     }
   }
 
-  /**
-   * Start a voice-based interaction.
-   * @param editor Active text editor.
-   */
-  async startVoiceInteraction(editor: vscode.TextEditor): Promise<void> {
-    if (this.isProcessing) {
-      vscode.window.showInformationMessage("Already processing an interaction");
-      return;
-    }
-    try {
-      this.isProcessing = true;
-      vscode.window.showInformationMessage("Recording...");
-      // Record audio
-      const audioFilePath = await AudioRecorder.record();
-      // Convert speech to text
-      const transcription = await convertSpeechToText(audioFilePath);
-      if (!transcription || transcription.trim().length === 0) {
-        throw new Error("Failed to transcribe speech or no speech detected");
-      }
-      // Get file content and AI response
-      const fileContent = editor.document.getText();
-      const aiResponse = await getAIResponseWithHistory(
-        transcription,
-        "inline_chat",
-        {
-          customPrompt: this.getPrompt(),
-          fileContext: fileContent
-        }
-      );
-      // Parse and process actions
-      const actions = this.parseResponse(aiResponse);
-      await this.processActions(editor, actions);
-      // Clean up temporary audio file
-      try {
-        if (fs.existsSync(audioFilePath)) {
-          fs.unlinkSync(audioFilePath);
-        }
-      } catch (cleanupError) {
-        console.error("Error cleaning up temporary file:", cleanupError);
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      vscode.window.showErrorMessage(`Voice interaction failed: ${errorMessage}`);
-      console.error("Voice interaction error:", error);
-    } finally {
-      this.isProcessing = false;
-    }
-  }
+  // The following private methods are not meant to be overridden
+  // and are used internally by the class to handle specific tasks.
+  // This is to ensure nothing breaks in the base class.
 
   /**
    * Parse the AI response into structured actions.
    * @param response AI response string.
    */
-  protected parseResponse(response: string): CheerleaderAction[] {
+  private parseResponse(response: string): CheerleaderAction[] {
     // Find start of JSON block
     const startIndex = response.indexOf("```json");
     if (startIndex === -1) {
+      console.debug("No JSON block found in response");
       return [{
         action: "conversation",
         content: response.trim()
@@ -182,7 +224,7 @@ export abstract class CheerleaderAgent {
    * @param editor Active text editor.
    * @param actions Array of actions.
    */
-  protected async processActions(editor: vscode.TextEditor, actions: CheerleaderAction[]): Promise<void> {
+  private async processActions(editor: vscode.TextEditor, actions: CheerleaderAction[]): Promise<void> {
     if (!actions || actions.length === 0) return;
     
     for (const action of actions) {
