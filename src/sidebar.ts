@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { APIManager, ServiceType } from "./services/api_manager";
+import { APIManager, ServiceType } from "./utils/api_manager";
 import { WebSocketService } from "./services/websocket_service";
 
 /**

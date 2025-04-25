@@ -1,6 +1,6 @@
 import { createWriteStream } from "fs";
 import { ElevenLabsClient } from "elevenlabs";
-import { APIManager } from "./api_manager";
+import { APIManager } from "../utils/api_manager";
 
 /**
  * Convert text to speech using ElevenLabs API and save to a file

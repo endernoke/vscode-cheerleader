@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { ElevenLabsClient } from "elevenlabs";
-import { APIManager } from "./api_manager";
+import { APIManager } from "../utils/api_manager";
 
 /**
  * Convert an audio file to text using ElevenLabs speech-to-text API

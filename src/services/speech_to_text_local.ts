@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { pipeline } from '@huggingface/transformers';
 import { WaveFile } from 'wavefile';
-import { APIManager } from './api_manager';
+import { APIManager } from '../utils/api_manager';
 
 /**
  * Convert an audio file to text using Hugging Face's Whisper model
