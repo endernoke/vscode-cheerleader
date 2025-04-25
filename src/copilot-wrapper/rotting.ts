@@ -1,4 +1,4 @@
-import { playAudioFromFile } from "./play_voice";
+import { playAudioFromFile } from "../services/play_voice";
 import * as vscode from "vscode";
 import type { Result } from "get-windows";
 

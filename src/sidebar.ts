@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { APIManager, ServiceType } from "./services/api_manager";
+import { APIManager, ServiceType } from "./utils/api_manager";
 import { WebSocketService } from "./services/websocket_service";
 
 /**
@@ -67,6 +67,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         case "updateModelConfig":
           await this.handleModelConfigUpdate(data.config);
           break;
+        case "updateAudioProvider":
+          await this.handleAudioProviderUpdate(data.provider);
+          break;
       }
     });
   }
@@ -108,6 +111,29 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           service,
           status: 'error',
           message: `Error saving ${service} API key: ${error?.message || 'Unknown error'}`
+        });
+      }
+    }
+  }
+
+  private async handleAudioProviderUpdate(provider: 'elevenlabs' | 'huggingface'): Promise<void> {
+    try {
+      await this._apiManager.setAudioProvider(provider);
+
+      if (this._view) {
+        this._view.webview.postMessage({
+          type: 'audioProviderValidation',
+          status: 'valid',
+          message: 'Audio provider updated successfully'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating audio provider:', error);
+      if (this._view) {
+        this._view.webview.postMessage({
+          type: 'audioProviderValidation',
+          status: 'error',
+          message: `Error updating audio provider: ${error?.message || 'Unknown error'}`
         });
       }
     }
@@ -314,6 +340,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             <h3>Control and Config</h3>
                         </div>
                         <div class="section-content">
+                            <label class="label" for="audio-provider">Audio Provider</label>
+                            <select id="audio-provider" class="api-input" onchange="updateAudioProvider()">
+                                <option value="elevenlabs" ${vscode.workspace.getConfiguration('cheerleader.audio').get('provider') === 'elevenlabs' ? 'selected' : ''}>ElevenLabs</option>
+                                <option value="huggingface" ${vscode.workspace.getConfiguration('cheerleader.audio').get('provider') === 'huggingface' ? 'selected' : ''}>Hugging Face</option>
+                            </select>
+                            <div id="audio-provider-validation" class="validation-message"></div>
+
                             <label class="label" for="elevenlabs-key">ElevenLabs API Key</label>
                             <input type="password" id="elevenlabs-key" class="api-input" 
                                 value="${elevenLabsKey}" 
@@ -406,6 +439,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     </div>
 
                     <script>
+                        function updateAudioProvider() {
+                            const provider = document.getElementById('audio-provider').value;
+                            vscode.postMessage({
+                                type: 'updateAudioProvider',
+                                provider: provider
+                            });
+                        }
+
                         // Handle messages from the extension
                         window.addEventListener('message', event => {
                             const message = event.data;

@@ -46,13 +46,8 @@
         "category": "Testing"
       },
       {
-        "command": "cheerleader.startRecording",
+        "command": "cheerleader.record",
         "title": "Start Voice Recording",
-        "category": "Testing"
-      },
-      {
-        "command": "cheerleader.stopRecording",
-        "title": "Stop Voice Recording",
         "category": "Testing"
       },
       {
@@ -71,6 +66,12 @@
         "title": "Inline Voice Chat with Cheerleader",
         "category": "Cheerleader",
         "icon": "$(bell)"
+      },
+      {
+        "command": "cheerleader.rubberDuckVoice",
+        "title": "Debug with Rubber Duck",
+        "category": "Cheerleader",
+        "icon": "$(duck)"
       },
       {
         "command": "cheerleader.reviewCode",
@@ -170,6 +171,15 @@
           ],
           "default": "gpt-4o",
           "description": "The Copilot model family to use"
+        },
+        "cheerleader.audio.provider": {
+          "type": "string",
+          "enum": [
+            "elevenlabs",
+            "huggingface"
+          ],
+          "default": "elevenlabs",
+          "description": "The model provider to use for STT and TTS"
         }
       }
     },

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ElevenLabsClient } from 'elevenlabs';
 
 export type ServiceType = 'elevenlabs' | 'huggingface';
+export type AudioProvider = 'elevenlabs' | 'huggingface';
 
 interface APIManagerEvents {
     onKeyChange: (service: ServiceType, key: string) => void;
@@ -13,12 +14,14 @@ export class APIManager {
     private clients: Map<ServiceType, any>;
     private eventHandlers: APIManagerEvents[];
     private context: vscode.ExtensionContext;
+    private audioProvider: AudioProvider;
 
     private constructor(context: vscode.ExtensionContext) {
         this.apiKeys = new Map();
         this.clients = new Map();
         this.eventHandlers = [];
         this.context = context;
+        this.audioProvider = vscode.workspace.getConfiguration('cheerleader.audio').get('provider', 'elevenlabs');
     }
 
     public static getInstance(context?: vscode.ExtensionContext): APIManager {
@@ -31,29 +34,35 @@ export class APIManager {
     }
 
     public async initialize() {
-        // Load existing keys from secrets storage
-        // Remind the user to set their keys if not found
-        const elevenLabsKey = await this.context.secrets.get('elevenlabs-key');
-        const huggingFaceKey = await this.context.secrets.get('huggingface-key');
-
-        if (elevenLabsKey) {
-            await this.setAPIKey('elevenlabs', elevenLabsKey);
+        // Get the current provider from settings
+        const currentProvider = this.getAudioProvider();
+        
+        // Only load the key for the current provider
+        const key = await this.context.secrets.get(`${currentProvider}-key`);
+        
+        if (key) {
+            try {
+                await this.setAPIKey(currentProvider, key);
+            } catch (error) {
+                console.error(`Failed to initialize ${currentProvider} client:`, error);
+                vscode.window.showErrorMessage(
+                    `Failed to initialize ${currentProvider}. Please check your API key in the sidebar.`
+                );
+            }
         } else {
             vscode.window.showInformationMessage(
-                'Please set your ElevenLabs API key in the sidebar.'
-            );
-        }
-
-        if (huggingFaceKey) {
-            await this.setAPIKey('huggingface', huggingFaceKey);
-        } else {
-            vscode.window.showInformationMessage(
-                'If you want to use Hugging Face for transcription, please set your API key in the sidebar.'
+                `Please set your ${currentProvider} API key in the sidebar.`
             );
         }
     }
 
     public async setAPIKey(service: ServiceType, key: string): Promise<void> {
+        // Only store key if it's for the current provider
+        const currentProvider = this.getAudioProvider();
+        if (service !== currentProvider) {
+            throw new Error(`Cannot set API key for ${service} while using ${currentProvider} provider`);
+        }
+
         // Store in secrets
         await this.context.secrets.store(`${service}-key`, key);
         
@@ -83,9 +92,17 @@ export class APIManager {
     }
 
     private async reinitializeClient(service: ServiceType): Promise<void> {
+        // Clear all existing clients since we only use one at a time
+        this.clients.clear();
+
         const key = this.apiKeys.get(service);
         if (!key) {
-            this.clients.delete(service);
+            return;
+        }
+
+        // Only initialize if it matches the current audio provider
+        const currentProvider = this.getAudioProvider();
+        if (service !== currentProvider) {
             return;
         }
 
@@ -95,8 +112,6 @@ export class APIManager {
                     this.clients.set(service, this.createElevenLabsClient(key));
                     break;
                 case 'huggingface':
-                    // Hugging Face doesn't require client initialization,
-                    // we just store the key for API calls
                     this.clients.set(service, { apiKey: key });
                     break;
             }
@@ -118,12 +133,29 @@ export class APIManager {
         });
     }
 
+    public getAudioProvider(): AudioProvider {
+        return this.audioProvider;
+    }
+
+    public async setAudioProvider(provider: AudioProvider): Promise<void> {
+        this.audioProvider = provider;
+        
+        // Clear all clients since we're switching providers
+        this.clients.clear();
+        
+        // Update VSCode settings
+        await vscode.workspace.getConfiguration('cheerleader.audio')
+            .update('provider', provider, vscode.ConfigurationTarget.Global);
+        
+        // Initialize the new provider
+        await this.initialize();
+    }
+
     public async validateKey(service: ServiceType, key: string): Promise<boolean> {
         try {
             switch (service) {
                 case 'elevenlabs':
                     const client = new ElevenLabsClient({ apiKey: key });
-                    // Try to access voices to validate the key
                     await client.voices.getAll();
                     return true;
                 case 'huggingface':

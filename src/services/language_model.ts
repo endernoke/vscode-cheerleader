@@ -165,7 +165,7 @@ export async function getAIResponseWithTools(
  * Get AI response with conversation history support.
  * This maintains the context of the conversation while preventing the history from growing too large.
  * @param userText - The user's message to the AI.
- * @param documentUri - The URI of the document to which the conversation belongs.
+ * @param mode - The mode of the conversation (e.g., "inline_chat").
  * @param options - Additional options for the language model.
  * @returns The AI's response to the user's message.
  * 

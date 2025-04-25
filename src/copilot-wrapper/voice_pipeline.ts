@@ -1,11 +1,9 @@
 import * as vscode from "vscode";
 import * as fs from 'fs';
-import * as path from 'path';
 import { AudioRecorder } from '../services/record_speech';
-import { convertSpeechToText } from '../services/speech_to_text_local';
+import { convertSpeechToText } from '../services/speech_to_text';
 import { getAIResponse } from '../services/language_model';
 import { playTextToSpeech } from '../services/play_voice';
-import { v4 as uuid } from 'uuid';
 
 export interface VoicePipelineOptions {
     customPrompt?: string;
@@ -24,16 +22,6 @@ export interface VoicePipelineOptions {
  */
 export class VoiceInteractionPipeline {
     private static isProcessing: boolean = false;
-    private static recordingsDir: string;
-    private static statusBarItem: vscode.StatusBarItem;
-    
-    static initialize(context: vscode.ExtensionContext) {
-        // Create recordings directory
-        this.recordingsDir = path.join(context.globalStorageUri.fsPath, 'recordings');
-        if (!fs.existsSync(this.recordingsDir)) {
-            fs.mkdirSync(this.recordingsDir, { recursive: true });
-        }
-    }
     
     /**
      * Activate the voice to voice pipeline. Allows for customization of prompt and context.
@@ -58,39 +46,18 @@ export class VoiceInteractionPipeline {
         
         try {
             this.isProcessing = true;
-            this.updateStatus("$(mic-filled) Recording...");
             
-            // Step 1: Record audio
-            await AudioRecorder.startRecording();
+            // Use the AudioRecorder's record method which handles file saving
+            const audioFilePath = await AudioRecorder.record();
             
-            // Show recording notification with cancel button
-            const recordingPrompt = await vscode.window.showInformationMessage(
-                "Recording... Click 'Stop' when you're done speaking",
-                { modal: false },
-                'Stop'
-            );
-            
-            if (!recordingPrompt) {
-                return;
-            }
-            
-            // Step 2: Stop recording and get audio data
-            this.updateStatus("$(sync~spin) Processing audio...");
-            const recordingResult = AudioRecorder.stopRecording(false);
-            
-            if (recordingResult.buffer.length === 0) {
+            if (!audioFilePath) {
                 vscode.window.showWarningMessage("No audio was recorded");
-                this.resetStatus();
                 return;
             }
-            
-            // Save the buffer to a temporary file
-            const tempFilePath = path.join(this.recordingsDir, `recording-${uuid()}.wav`);
-            fs.writeFileSync(tempFilePath, recordingResult.buffer);
             
             try {
                 // Step 3: Convert speech to text
-                const transcription = await convertSpeechToText(tempFilePath);
+                const transcription = await convertSpeechToText(audioFilePath);
                 if (!transcription || transcription.trim().length === 0) {
                     throw new Error("Failed to transcribe speech or no speech detected");
                 }
@@ -100,8 +67,6 @@ export class VoiceInteractionPipeline {
                     vscode.window.showInformationMessage(`You said: ${transcription}`);
                 }
                 
-                this.updateStatus("$(hubot) Thinking...");
-                
                 // Step 4: Get AI response with context
                 const aiResponse = await getAIResponse(transcription, {
                     customPrompt: options.customPrompt,
@@ -110,18 +75,16 @@ export class VoiceInteractionPipeline {
                 
                 // Step 5: Play AI response if enabled
                 if (options.playResponse !== false) {
-                    this.updateStatus("$(play) Playing response...");
                     await playTextToSpeech(aiResponse);
                 }
-                this.updateStatus("$(check) Done!");
 
                 return aiResponse;
                 
             } finally {
                 // Clean up the temporary file
                 try {
-                    if (fs.existsSync(tempFilePath)) {
-                        fs.unlinkSync(tempFilePath);
+                    if (fs.existsSync(audioFilePath)) {
+                        fs.unlinkSync(audioFilePath);
                     }
                 } catch (cleanupError) {
                     console.error("Error cleaning up temporary file:", cleanupError);
@@ -134,23 +97,11 @@ export class VoiceInteractionPipeline {
             return undefined;
         } finally {
             this.isProcessing = false;
-            this.resetStatus();
         }
-    }
-    
-    private static updateStatus(text: string): void {
-        this.statusBarItem.text = text;
-    }
-    
-    private static resetStatus(): void {
-        this.statusBarItem.text = '$(mic) Ask Cheerleader';
     }
 }
 
 export function registerVoiceInteractionCommands(context: vscode.ExtensionContext) {
-    // Initialize pipeline
-    VoiceInteractionPipeline.initialize(context);
-    
     // Register command
     const command = vscode.commands.registerCommand(
         'cheerleader.startVoiceInteraction',

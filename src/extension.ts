@@ -4,13 +4,14 @@ import { activateTTS } from "./services/play_voice";
 import { registerAudioCommands } from "./services/record_speech";
 import { registerVoiceInteractionCommands } from "./copilot-wrapper/voice_pipeline";
 import { registerInlineChatCommand } from "./copilot-wrapper/inline_chat";
+import { registerRubberDuckCommand } from "./copilot-wrapper/rubber_duck";
 import { registerCodeSupportCommands } from "./copilot-wrapper/code_support";
 import { WebSocketService } from "./services/websocket_service";
 import { activateEncouragement } from "./services/encouragement_service";
-import { registerMonitoringCommand } from "./services/rotting";
+import { registerMonitoringCommand } from "./copilot-wrapper/rotting"
 import { registerPasteMeCommand } from "./copilot-wrapper/paste_me";
 import { activateSidebar } from "./sidebar";
-import { APIManager } from "./services/api_manager";
+import { APIManager } from "./utils/api_manager";
 import { createCheerleaderChatParticipant } from "./copilot-wrapper/chat_participant";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -27,6 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerAudioCommands(context);
   registerVoiceInteractionCommands(context);
   registerInlineChatCommand(context);
+  registerRubberDuckCommand(context);
   registerCodeSupportCommands(context);
   registerMonitoringCommand(context);
   activateEncouragement(context);
