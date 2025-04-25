@@ -1,7 +1,7 @@
 # Cheerleader
 
 <p align="center">
-  <img src="assets/cheerleader.svg" alt="Cheerleader" width="50"><br>
+  <img src="assets/cheerleader.png" alt="Cheerleader" width="50"><br>
   Supercharge your dev experience with an anime coding companion!
 </p>
 
@@ -29,7 +29,11 @@ Cheerleader brings a fun, interactive anime assistant to your VS Code environmen
 
 Some background features can be configured in the sidebar, refer to the [Setup and Configuration](#setup-and-configuration) section below. Other features can be accessed through the overlay UI:
 
-![Buttons](assets/screenshots/buttons.png)
+<p align="center">
+   <img src="assets/screenshots/buttons.png" alt="Try out interactive features" width="600">
+   <br>
+   <em>Try out interactive features!</em>
+</p>
 
 ## Setup and Configuration
 

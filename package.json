@@ -4,11 +4,8 @@
   "description": "Supercharge your dev experience with an anime coding companion",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.98.0"
+    "vscode": "^1.99.0"
   },
-  "files": [
-    "assets/**"
-  ],
   "categories": [
     "Themes",
     "AI",
@@ -121,7 +118,7 @@
         {
           "id": "cheerleader-sidebar",
           "title": "Cheerleader",
-          "icon": "assets/cheerleader.svg"
+          "icon": "assets/cheerleader.png"
         }
       ]
     },
@@ -131,7 +128,7 @@
           "id": "cheerleader-controls",
           "name": "Controls",
           "type": "webview",
-          "icon": "assets/cheerleader.svg"
+          "icon": "assets/cheerleader.png"
         }
       ]
     },

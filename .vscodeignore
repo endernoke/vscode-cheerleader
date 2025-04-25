@@ -1,11 +1,41 @@
-.vscode/**
-.vscode-test/**
-src/**
+# Source control
+.git
 .gitignore
-.yarnrc
-vsc-extension-quickstart.md
+
+# Source code
+src/**
+out/test/**
 **/tsconfig.json
-**/eslint.config.mjs
+**/.eslintrc.json
 **/*.map
 **/*.ts
-**/.vscode-test.*
+
+# Development files
+.vscode/**
+.vscode-test.mjs
+.vscode-test/**
+node_modules/**
+test/**
+live2d-container/node_modules/**
+.env
+
+# Build tools and config
+.github/**
+.azure-pipelines/**
+webpack.config.js
+**/webpack.config.js
+**/tsconfig.json
+**/.eslintrc.json
+
+# Documentation and examples
+docs/**
+examples/**
+images/**/*.psd
+*.md
+!README.md
+
+# Misc
+.editorconfig
+.prettierrc
+.npmrc
+.npmignore

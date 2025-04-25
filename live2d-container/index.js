@@ -156,7 +156,7 @@ const loadModel = async (url) => {
     onClick: () => {
       window.electronAPI.onCloseButton();
     },
-    icon: createSVGElement('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/></svg>'),
+    icon: createSVGElement(Icons.CLOSE),
     tooltip: 'Close'
   });
   
@@ -164,7 +164,7 @@ const loadModel = async (url) => {
     onClick: () => {
       model.handleExecuteMotion('vodka', MotionPriority.FORCE);
     },
-    icon: createSVGElement('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M393.4 9.4c12.5-12.5 32.8-12.5 45.3 0l64 64c12.5 12.5 12.5 32.8 0 45.3c-11.8 11.8-30.7 12.5-43.2 1.9l-9.5 9.5-48.8 48.8c-9.2 9.2-11.5 22.9-8.6 35.6c9.4 40.9-1.9 85.6-33.8 117.5L197.3 493.3c-25 25-65.5 25-90.5 0l-88-88c-25-25-25-65.5 0-90.5L180.2 153.3c31.9-31.9 76.6-43.1 117.5-33.8c12.6 2.9 26.4 .5 35.5-8.6l48.8-48.8 9.5-9.5c-10.6-12.6-10-31.4 1.9-43.2zM99.3 347.3l65.4 65.4c6.2 6.2 16.4 6.2 22.6 0l97.4-97.4c6.2-6.2 6.2-16.4 0-22.6l-65.4-65.4c-6.2-6.2-16.4-6.2-22.6 0L99.3 324.7c-6.2 6.2-6.2 16.4 0 22.6z"/></svg>'),
+    icon: createSVGElement(Icons.VODKA),
     tooltip: 'Пить водку'
   });
 
@@ -172,7 +172,7 @@ const loadModel = async (url) => {
     onClick: () => {
       model.handleExecuteMotion('CENTER_HoldPhone', MotionPriority.FORCE);
     },
-    icon: createSVGElement('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M448 32l-86.1 0-1 1-127 127 92.1 0 1-1L453.8 32.3c-1.9-.2-3.8-.3-5.8-.3zm64 128l0-64c0-15.1-5.3-29.1-14-40l-104 104L512 160zM294.1 32l-92.1 0-1 1L73.9 160l92.1 0 1-1 127-127zM64 32C28.7 32 0 60.7 0 96l0 64 6.1 0 1-1 127-127L64 32zM512 192L0 192 0 416c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-224z"/></svg>'),
+    icon: createSVGElement(Icons.PHONE),
     tooltip: 'Consume brainrot'
   });
 
@@ -200,6 +200,14 @@ const loadModel = async (url) => {
     },
     icon: createSVGElement('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'),
     tooltip: 'Toggle Lofi Music'
+  });
+
+  buttonManager.addButton({
+    onClick: () => {
+      window.electronAPI.runVSCodeCommand("cheerleader.inlineChatVoice");
+    },
+    icon: createSVGElement(Icons.CHAT),
+    tooltip: "Inline Chat",
   });
 
   buttonManager.addButton({
