@@ -81,7 +81,7 @@ export class MarkdownRenderer {
                         });
                         
                         document.addEventListener('DOMContentLoaded', () => {
-                            mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+                            mermaid.init(undefined, document.querySelectorAll('code.language-mermaid'));
                         });
                     </script>
                 </body>

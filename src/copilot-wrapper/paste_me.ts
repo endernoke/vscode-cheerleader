@@ -6,25 +6,21 @@ import { MarkdownRenderer } from "../utils/render_markdown";
 
 const PASTE_ME_PROMPT = `Analyze the pasted code and provide/explain:
 
-    1. Key technical elements (3 max, only if worth mentioning):
-        - Core algorithms or patterns
-        - Important workflow logic
-        - Notable design decisions
+    1. Key technical elements (3 max) such as core algorithms, design patterns or decisions, workflow logic
 
-    2. Quick practical insights for learning:
-        - Main purpose and value
-        - Common use cases
-        - Best practices demonstrated
+    2. Quick practical insights for learning
+
+    3. If applicable, suggest a simple diagram to illustrate the code's structure or flow.
+
+    To include a diagram, use the following syntax:
+    \`\`\`mermaid
+    <mermaid_diagram_here>
+    \`\`\`
 
     Response format (JSON):
     {
-        "speech": "short, friendly, and perhaps funny or inspirational message that summarizes key concepts",
-        "explanation": "Detailed markdown with:
-            - Brief code overview
-            - Key concepts breakdown
-            - Practical examples
-            - Mermaid diagrams (if helpful)
-            - Best practices tips"
+        "speech": "short, friendly message that summarizes key concepts",
+        "explanation": "Detailed markdown with the three points above, including the diagram if applicable"
     }
 
     Keep the speech part concise and friendly. Make the explanation thorough but approachable.`;
@@ -80,13 +76,13 @@ class CodeExplainer {
       });
 
       const cleanedResult = result
-        .replace(/```json/g, "") // Remove ```json
-        .replace(/```/g, "") // Remove ```
-        .replace(/`/g, "") // Remove stray backticks
+        .replace(/^```json\n/, "") // Remove starting ```json
+        .replace(/\n```$/, "") // Remove ending ```
         .trim();
 
       const parsedResponse = JSON.parse(cleanedResult);
       await playTextToSpeech(parsedResponse.speech);
+      console.log("explanation:", parsedResponse.explanation);
       await this.renderInSidebar(parsedResponse.explanation);
     } catch (error) {
       vscode.window.showErrorMessage(`Failed to explain code: ${error}`);
