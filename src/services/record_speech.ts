@@ -15,7 +15,7 @@ export class AudioRecorder {
   private static recordingsDir: string;
   private static silenceStart: number | null = null;
   private static lastSoundTime: number | null = null;
-  private static SILENCE_THRESHOLD = 40; // Adjust based on testing
+  private static SILENCE_THRESHOLD = -40; // Adjust based on testing
   private static MAX_SILENCE_DURATION = 3000; // 2 seconds of silence before stopping
 
   static initialize(context: vscode.ExtensionContext) {
@@ -36,13 +36,13 @@ export class AudioRecorder {
 
   static async record(): Promise<string> {
     if (this.isRecording) {
-      throw new Error("Already recording");
+      return this.manualStop();
     }
 
     return new Promise((resolve, reject) => {
       this.startRecording()
         .then(() => {
-          // Recording will be stopped by silence detection
+          // Recording will be stopped by silence detection or manual stop
         })
         .catch(reject);
 
@@ -58,6 +58,15 @@ export class AudioRecorder {
         }
       }, 100);
     });
+  }
+
+  private static async manualStop(): Promise<string> {
+    this.stopRecording();
+    const result = this.getLastRecording();
+    if (result.filePath) {
+      return result.filePath;
+    }
+    throw new Error("No audio data was recorded");
   }
 
   private static async startRecording(): Promise<void> {
@@ -91,7 +100,7 @@ export class AudioRecorder {
             console.log(`[AudioRecorder] Audio level: ${audioLevel}`);
 
             // Detect silence
-            if (audioLevel > this.SILENCE_THRESHOLD) {
+            if (audioLevel < this.SILENCE_THRESHOLD) {
               if (!this.silenceStart) {
                 this.silenceStart = Date.now();
                 console.log("[AudioRecorder] Silence started");
@@ -143,7 +152,7 @@ export class AudioRecorder {
     // Convert to dB
     const db = 20 * Math.log10(rms / 32767); // 32767 is max value for 16-bit audio
 
-    return Math.max(0, -db); // Inverse dB scale so higher number = louder
+    return db; // Higher dB means louder sound
   }
 
   private static getLastRecording(): { buffer: Buffer; filePath?: string } {
@@ -179,7 +188,7 @@ export class AudioRecorder {
 
   private static updateStatus(text: string) {
     this.statusBar.text = text;
-    text ? this.statusBar.show() : this.statusBar.hide();
+    this.statusBar.show();
   }
 }
 
@@ -197,6 +206,14 @@ export function registerAudioCommands(context: vscode.ExtensionContext) {
         
         try {
           await SoundPlayer.playFile(filePath);
+          // cleanup
+          fs.unlink(filePath, (err) => {
+            if (err) {
+              console.error(`Error deleting file: ${err}`);
+            } else {
+              console.log(`File deleted: ${filePath}`);
+            }
+          });
         } catch (playError) {
           vscode.window.showErrorMessage(`Failed to play recording: ${playError}`);
         }
