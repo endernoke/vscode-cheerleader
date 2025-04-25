@@ -19,22 +19,24 @@ export function activate(context: vscode.ExtensionContext) {
   const apiManager = APIManager.getInstance(context);
   apiManager.initialize();
 
-  // Activate core features
+  // Activate core components 
   activateOverlay(context);
   activateSidebar(context);
 
-  // Then activate features that may use WebSocket
-  activateTTS(context);
-  registerAudioCommands(context);
+  // register ai voice commands
   registerVoiceInteractionCommands(context);
   registerInlineChatCommand(context);
   registerRubberDuckCommand(context);
   registerCodeSupportCommands(context);
+
+  // register editor commands
+  activateTTS(context);
+  registerAudioCommands(context);
   registerMonitoringCommand(context);
   activateEncouragement(context);
   registerPasteMeCommand(context);
 
-  // Register Chat Participant
+  // Register Chat Participant (disabled for now)
   createCheerleaderChatParticipant(context);
 
   // Add disposal of WebSocket service

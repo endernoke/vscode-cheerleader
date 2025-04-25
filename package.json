@@ -36,36 +36,14 @@
         "category": "Cheerleader"
       },
       {
-        "command": "cheerleader.testTTS",
-        "title": "Test Voice Module",
-        "category": "Testing"
-      },
-      {
-        "command": "cheerleader.testEncouragement",
-        "title": "Test Encouragement Module",
-        "category": "Testing"
-      },
-      {
-        "command": "cheerleader.record",
-        "title": "Start Voice Recording",
-        "category": "Testing"
-      },
-      {
-        "command": "cheerleader.startVoiceInteraction",
-        "title": "Speak to Cheerleader",
-        "category": "Cheerleader"
-      },
-      {
         "command": "cheerleader.inlineChat",
         "title": "Inline Chat with Cheerleader",
-        "category": "Testing",
-        "icon": "$(bell)"
+        "category": "Cheerleader"
       },
       {
         "command": "cheerleader.inlineChatVoice",
         "title": "Inline Voice Chat with Cheerleader",
-        "category": "Cheerleader",
-        "icon": "$(bell)"
+        "category": "Cheerleader"
       },
       {
         "command": "cheerleader.rubberDuckVoice",
@@ -98,19 +76,44 @@
         "command": "cheerleader.togglePasteMonitoring",
         "title": "Toggle Paste Monitoring",
         "category": "Cheerleader"
+      },
+      {
+        "command": "cheerleader.testTTS",
+        "title": "Test Voice Module",
+        "category": "Testing"
+      },
+      {
+        "command": "cheerleader.testEncouragement",
+        "title": "Test Encouragement Module",
+        "category": "Testing"
+      },
+      {
+        "command": "cheerleader.record",
+        "title": "Start Voice Recording",
+        "category": "Testing"
+      },
+      {
+        "command": "cheerleader.startVoiceInteraction",
+        "title": "Speak to Cheerleader",
+        "category": "Testing"
       }
     ],
     "menus": {},
     "keybindings": [
       {
-        "command": "cheerleader.startVoiceInteraction",
-        "key": "cmd+shift+v",
-        "mac": "cmd+shift+v"
-      },
-      {
         "command": "cheerleader.inlineChatVoice",
         "key": "cmd+shift+c",
         "mac": "cmd+shift+c"
+      },
+      {
+        "command": "cheerleader.reviewCode",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r"
+      },
+      {
+        "command": "cheerleader.rubberDuckVoice",
+        "key": "ctrl+shift+d",
+        "mac": "cmd+shift+d"
       }
     ],
     "viewsContainers": {

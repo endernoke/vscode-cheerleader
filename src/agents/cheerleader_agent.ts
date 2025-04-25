@@ -5,7 +5,7 @@ import { AudioRecorder } from '../services/record_speech';
 import { convertSpeechToText } from '../services/speech_to_text';
 import { getAIResponse, getAIResponseWithHistory } from '../services/language_model';
 import { ChatHistoryManager } from '../utils/chat_history_manager';
-import { CheerleaderAction } from './action_handlers/action_handler';
+import { BasicCheerleaderAction } from './action_handlers/action_handler';
 import { ActionHandlerRegistry } from './action_handlers/action_handler';
 import { ConversationHandler } from './action_handlers/conversation_handler';
 import { EditHandler } from './action_handlers/edit_handler';
@@ -16,6 +16,49 @@ import { HighlightHandler } from './action_handlers/highlight_handler';
 /**
  * Abstract base class for all Cheerleader agents.
  * It encapsulates common functionality for text and voice interactions.
+ * 
+ */
+/**
+ * An abstract base class representing a Cheerleader Agent that provides interactive code assistance.
+ * This class handles both voice and text-based interactions, manages action handlers, and processes AI responses.
+ * 
+ * @abstract
+ * @class CheerleaderAgent
+ * 
+ * @property {vscode.ExtensionContext} context - The VS Code extension context
+ * @property {boolean} isProcessing - Flag indicating if the agent is currently processing an interaction
+ * @property {string} recordingsDir - Directory path for storing voice recordings
+ * @property {ChatHistoryManager} historyManager - Manager for chat history
+ * @property {ActionHandlerRegistry} actionRegistry - Registry for action handlers
+ * 
+ * @remarks
+ * The CheerleaderAgent class serves as a foundation for creating specialized agents that can:
+ * - Handle both voice and text interactions
+ * - Process and execute various code actions
+ * - Manage recordings and chat history
+ * - Register and coordinate different action handlers
+ * 
+ * To create a new agent, extend this class and implement the required abstract methods:
+ * - getPrompt()
+ * - mode
+ * - startVoiceInteraction()
+ * 
+ * @example
+ * ```typescript
+ * class MyCustomAgent extends CheerleaderAgent {
+ *   getPrompt(): string {
+ *     return "Custom prompt for my agent";
+ *   }
+ *   
+ *   get mode(): string {
+ *     return "custom_mode";
+ *   }
+ *   
+ *   async startVoiceInteraction(editor: vscode.TextEditor): Promise<void> {
+ *     await this.processInteraction(editor, () => this.getUserInputFromAudio());
+ *   }
+ * }
+ * ```
  */
 export abstract class CheerleaderAgent {
   protected context: vscode.ExtensionContext;
@@ -186,7 +229,7 @@ export abstract class CheerleaderAgent {
    * Parse the AI response into structured actions.
    * @param response AI response string.
    */
-  private parseResponse(response: string): CheerleaderAction[] {
+  private parseResponse(response: string): BasicCheerleaderAction[] {
     // Find start of JSON block
     const startIndex = response.indexOf("```json");
     if (startIndex === -1) {
@@ -224,7 +267,7 @@ export abstract class CheerleaderAgent {
    * @param editor Active text editor.
    * @param actions Array of actions.
    */
-  private async processActions(editor: vscode.TextEditor, actions: CheerleaderAction[]): Promise<void> {
+  private async processActions(editor: vscode.TextEditor, actions: BasicCheerleaderAction[]): Promise<void> {
     if (!actions || actions.length === 0) return;
     
     for (const action of actions) {

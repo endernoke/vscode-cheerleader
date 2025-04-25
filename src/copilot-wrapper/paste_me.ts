@@ -6,11 +6,9 @@ import { MarkdownRenderer } from "../utils/render_markdown";
 
 const PASTE_ME_PROMPT = `Analyze the pasted code and provide/explain:
 
-    1. Key technical elements (3 max) such as core algorithms, design patterns or decisions, workflow logic
+    1. Key technical elements (3 max) such as core algorithms, design patterns or decisions, workflow logic, practical use cases
 
-    2. Quick practical insights for learning
-
-    3. If applicable, suggest a simple diagram to illustrate the code's structure or flow.
+    2. If applicable, create a mermaid diagram to illustrate the code's structure or flow.
 
     To include a diagram, use the following syntax:
     \`\`\`mermaid
@@ -20,7 +18,7 @@ const PASTE_ME_PROMPT = `Analyze the pasted code and provide/explain:
     Response format (JSON):
     {
         "speech": "short, friendly message that summarizes key concepts",
-        "explanation": "Detailed markdown with the three points above, including the diagram if applicable"
+        "explanation": "Detailed markdown with the two points above, including the diagram if applicable"
     }
 
     Keep the speech part concise and friendly. Make the explanation thorough but approachable.`;

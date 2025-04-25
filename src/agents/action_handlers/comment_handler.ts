@@ -7,6 +7,10 @@ export interface CommentAction {
   comment: string;
 }
 
+/**
+ * Handler for the "comment" action.
+ * This handler is responsible for inserting a comment at a specific line in the editor.
+ */
 export class CommentHandler implements ActionHandler<CommentAction> {
   canHandle(action: any): action is CommentAction {
     return action?.action === 'comment' && 

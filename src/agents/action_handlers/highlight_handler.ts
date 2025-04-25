@@ -9,6 +9,10 @@ export interface HighlightAction {
   };
 }
 
+/**
+ * Handler for the "highlight" action.
+ * This handler is responsible for highlighting a range of lines in the editor.
+ */
 export class HighlightHandler implements ActionHandler<HighlightAction> {
   canHandle(action: any): action is HighlightAction {
     return action?.action === 'highlight' && 

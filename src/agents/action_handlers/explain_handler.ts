@@ -7,6 +7,12 @@ export interface ExplainAction {
   explanation: string;
 }
 
+/**
+ * Handler for the "explain" action.
+ * This handler is responsible for rendering the explanation in the sidebar.
+ * It uses the MarkdownRenderer in `src/utils/render_markdown.ts`.
+ * @note Recommend specifying in prompt to use markdown and properly wrap the mermaid code block
+ */
 export class ExplainHandler implements ActionHandler<ExplainAction> {
   private static firstExplanation: boolean = true;
 

@@ -17,6 +17,10 @@ export interface EditAction {
   text: string;
 }
 
+/**
+ * Handler for the "edit" action.
+ * This handler is responsible for editing a range of text in the editor.
+ */
 export class EditHandler implements ActionHandler<EditAction> {
   canHandle(action: any): action is EditAction {
     return action?.action === 'edit' && 
