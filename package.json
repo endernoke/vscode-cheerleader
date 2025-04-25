@@ -171,6 +171,15 @@
           ],
           "default": "gpt-4o",
           "description": "The Copilot model family to use"
+        },
+        "cheerleader.audio.provider": {
+          "type": "string",
+          "enum": [
+            "elevenlabs",
+            "huggingface"
+          ],
+          "default": "elevenlabs",
+          "description": "The model provider to use for STT and TTS"
         }
       }
     },
