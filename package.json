@@ -68,6 +68,12 @@
         "icon": "$(bell)"
       },
       {
+        "command": "cheerleader.rubberDuckVoice",
+        "title": "Debug with Rubber Duck",
+        "category": "Cheerleader",
+        "icon": "$(duck)"
+      },
+      {
         "command": "cheerleader.reviewCode",
         "title": "Review Code with Cheerleader",
         "category": "Cheerleader",
