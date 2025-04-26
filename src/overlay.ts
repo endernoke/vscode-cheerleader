@@ -1,7 +1,13 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import { TaskScope, ShellExecution, Task, TaskDefinition, TaskPresentationOptions } from 'vscode';
+import {
+  TaskScope,
+  ShellExecution,
+  Task,
+  TaskDefinition,
+  TaskPresentationOptions,
+} from "vscode";
 import { WebSocketService } from "./services/websocket_service";
 
 interface LaunchOverlayTaskDefinition extends TaskDefinition {
@@ -10,9 +16,13 @@ interface LaunchOverlayTaskDefinition extends TaskDefinition {
 }
 
 function executeLaunchOverlayTask(overlayAppPath: string) {
+  // Make sure we're using the correct path for npx
+  const isWindows = process.platform === "win32";
+  const npxCommand = isWindows ? "npx.cmd" : "npx";
+
   const taskDefinition: LaunchOverlayTaskDefinition = {
-    type: 'shell',
-    command: `npx electron ${overlayAppPath}`,
+    type: "shell",
+    command: `${npxCommand} electron .`,
   };
 
   // Create shell execution with options to hide the terminal
@@ -22,18 +32,19 @@ function executeLaunchOverlayTask(overlayAppPath: string) {
     focus: false,
     echo: false,
     showReuseMessage: false,
-    clear: false
+    clear: false,
   };
 
-  const execution = new ShellExecution(
-    taskDefinition.command
-  );
+  // Use cwd to set the working directory to the overlay app path
+  const execution = new ShellExecution(taskDefinition.command, {
+    cwd: overlayAppPath,
+  });
 
   const task = new Task(
     taskDefinition,
     TaskScope.Global,
-    'Cheerleader Overlay',
-    'cheerleader',
+    "Cheerleader Overlay",
+    "cheerleader",
     execution
   );
 
@@ -57,9 +68,9 @@ export function activateOverlay(context: vscode.ExtensionContext) {
     webSocketService.close();
   };
 
-  const overlayAppPath = vscode.Uri.file(
-      `${context.extensionUri.fsPath}/live2d-container`
-    ).fsPath.replace(/\\/g, "/");  // Always use forward slashes for paths to avoid issues on Windows
+  // Ensure we get the path to the overlay relative to the extension
+  const overlayAppPath = path.join(context.extensionPath, "dist/live2d-container");
+
   if (!fs.existsSync(overlayAppPath)) {
     vscode.window.showErrorMessage(
       "Overlay app not found at " + overlayAppPath
@@ -69,10 +80,13 @@ export function activateOverlay(context: vscode.ExtensionContext) {
 
   try {
     // Register command to manually trigger the task
-    let disposable = vscode.commands.registerCommand('cheerleader.launchOverlay', () => {
-      webSocketService.startServer();
-      executeLaunchOverlayTask(overlayAppPath);
-    });
+    let disposable = vscode.commands.registerCommand(
+      "cheerleader.launchOverlay",
+      () => {
+        webSocketService.startServer();
+        executeLaunchOverlayTask(overlayAppPath);
+      }
+    );
 
     context.subscriptions.push(disposable);
 
@@ -91,7 +105,7 @@ export function activateOverlay(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.Disposable.from({
-      dispose: killOverlayApp
+      dispose: killOverlayApp,
     })
   );
 }
