@@ -3,7 +3,7 @@
   "displayName": "Cheerleader",
   "publisher": "cheerleader",
   "description": "Supercharge your dev experience with an anime coding companion",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.99.0"
   },
