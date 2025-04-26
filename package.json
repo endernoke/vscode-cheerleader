@@ -1,23 +1,14 @@
 {
   "name": "cheerleader",
-  "displayName": "Cheerleader",
-  "publisher": "cheerleader",
+  "displayName": "cheerleader",
   "description": "Supercharge your dev experience with an anime coding companion",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.99.0"
   },
-  "icon": "assets/cheerleader_light.png",
-  "author": {
-    "name": "James Zheng and Jet Chiang",
-    "email": "endernoke@gmail.com"
-  },
-  "pricing": "Free",
   "categories": [
     "Themes",
     "AI",
-    "Chat",
-    "Education",
     "Other"
   ],
   "repository": {
@@ -25,11 +16,6 @@
     "url": "https://github.com/endernoke/vscode-cheerleader"
   },
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/endernoke/vscode-cheerleader/issues",
-    "email": "endernoke@gmail.com"
-  },
-  "homepage": "https://github.com/endernoke/vscode-cheerleader/blob/main/README.md",
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -219,8 +205,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test",
-    "deploy": "vsce publish"
+    "test": "vscode-test"
   },
   "devDependencies": {
     "@types/dotenv": "^6.1.1",
@@ -235,7 +220,6 @@
     "@typescript-eslint/parser": "^8.28.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
-    "@vscode/vsce": "^3.3.2",
     "eslint": "^9.23.0",
     "typescript": "^5.8.2"
   },
