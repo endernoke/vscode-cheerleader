@@ -7,6 +7,10 @@ export interface ConversationAction {
   content: string;
 }
 
+/**
+ * Handler for the "conversation" action.
+ * This handler is responsible for playing the text-to-speech for the conversation content.
+ */
 export class ConversationHandler implements ActionHandler<ConversationAction> {
   canHandle(action: any): action is ConversationAction {
     return action?.action === 'conversation';

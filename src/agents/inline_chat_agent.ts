@@ -2,7 +2,6 @@ import { TextEditor } from 'vscode';
 import { CheerleaderAgent } from './cheerleader_agent';
 
 const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format:
-    There are only 4 types of actions: conversation, comment, edit, and explain shown below:
     \`\`\`json
     [
         {
@@ -24,11 +23,14 @@ const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving p
         },
         {
             "action": "explain",
-            "explanation": "Your explanation here."
+            "explanation": "Your explanation in markdown format"
         }
     ]
     \`\`\`
-
+    If you need to include diagrams in your explanation, use the following syntax:
+    \`\`\`mermaid
+    <mermaid_diagram_here>
+    \`\`\`
     Always start with a conversational response, then add necessary actions. Focus on teaching patterns and concepts.`;
 
 /**

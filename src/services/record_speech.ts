@@ -114,7 +114,7 @@ export class AudioRecorder {
             } else {
               this.silenceStart = null;
               this.lastSoundTime = Date.now();
-              this.updateStatus("$(mic-filled) Recording (Sound Detected)");
+              this.updateStatus("$(mic-filled) Press to stop");
             }
 
             next();

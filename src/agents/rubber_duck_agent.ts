@@ -47,9 +47,12 @@ When the problem is solved, respond with:
  */
 export class RubberDuckAgent extends CheerleaderAgent {
   private isSolved: boolean = false;
+  private statusBarItem!: vscode.StatusBarItem;
+
   constructor(context: vscode.ExtensionContext) {
     super(context);
     this.registerDebugHandlers();
+    this.initializeStatusBar();
   }
 
   // Register extra action handlers specific to debugging
@@ -58,6 +61,19 @@ export class RubberDuckAgent extends CheerleaderAgent {
     registry.registerHandler(new SolvedHandler(() => {
       this.isSolved = true;
     }));
+  }
+
+  private initializeStatusBar(): void {
+    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+    this.statusBarItem.text = "$(stop) Stop Debugging";
+    this.statusBarItem.command = 'vscode-cheerleader.stopDebugging';
+    this.statusBarItem.tooltip = 'Stop the current debugging session';
+    this.context.subscriptions.push(
+      vscode.commands.registerCommand('vscode-cheerleader.stopDebugging', () => {
+        this.isSolved = true;
+        this.statusBarItem.hide();
+      })
+    );
   }
 
   getPrompt(): string {
@@ -83,6 +99,7 @@ export class RubberDuckAgent extends CheerleaderAgent {
     try {
       // Initialize debugging session
       this.isSolved = false;
+      this.statusBarItem.show();
 
       // Get initial problem description
       let userQuestion = await getUserInput();
@@ -100,9 +117,16 @@ export class RubberDuckAgent extends CheerleaderAgent {
           userQuestion = nextInput;
         }
       }
+
+      this.statusBarItem.hide();
     } catch (error) {
+      this.statusBarItem.hide();
       vscode.window.showErrorMessage(`Debugging conversation error: ${error}`);
       console.error("Debugging conversation error:", error);
     }
+  }
+
+  dispose(): void {
+    this.statusBarItem.dispose();
   }
 }

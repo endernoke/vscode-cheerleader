@@ -7,6 +7,12 @@ export interface SolvedAction {
   message: string;
 }
 
+/**
+ * Handler for the "solved" action.
+ * Used to indicate that a conversation session has been completed.
+ * @note You must handle the action in the agent to stop the conversation
+ *       and clear the history accordingly.
+ */
 export class SolvedHandler implements ActionHandler<SolvedAction> {
   onSolved?: (action: SolvedAction) => void;
 

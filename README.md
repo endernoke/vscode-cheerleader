@@ -1,7 +1,7 @@
 # Cheerleader
 
 <p align="center">
-  <img src="assets/cheerleader.svg" alt="Cheerleader" width="50"><br>
+  <img src="assets/cheerleader.png" alt="Cheerleader" width="50"><br>
   Supercharge your dev experience with an anime coding companion!
 </p>
 
@@ -15,84 +15,59 @@ Cheerleader brings a fun, interactive anime assistant to your VS Code environmen
    <em>Coding with your anime companion</em>
 </p>
 
-### Interactive Anime Companion
+- Interactive anime character that floats on your screen and motivates you
 
-- An interactive anime character that floats on your screen and provides encouragement
-- Choose from multiple character models to be your coding companion
-- Position your cheerleader anywhere on your screen
-- Interact with your cheerleader with the mouse or action buttons
+- Audio code support and AI assistance such as inline chat, code review, rubber duck debugging that integrates with your editor (like Copilot but entirely voice-based)
 
-### Code Support & AI Assistance
+- Get encouraging messages based on your coding activity, console output, build/test results, LSP feedback, and more
 
-- Ask questions about your code using text or voice
-- Receive constructive comments, explanations, and suggested edits for your code
+- Cheer you up with productivity monitoring, music, and compliments
 
-### Editor Features
-
-- Get encouraging messages based on your coding activity
-- Hear cheerful feedback when you complete tasks like builds or tests
-- Get recognized for consistent coding sessions
-
-- Monitor your productivity and get gentle reminders when you stray
-- Toggle background lofi music to help you focus
-- Get motivated when you've been inactive for too long
+> For a detailed description of each feature, please refer to [this page](docs/features.md)
 
 ## Usage
 
-We will be adding a detailed description of each button on Cheerleader for better readability soon, stay tuned...
+Some background features can be configured in the sidebar, refer to the [Setup and Configuration](#setup-and-configuration) section below. Other features can be accessed through the overlay UI:
 
-### Character Interaction
+<p align="center">
+   <img src="assets/screenshots/buttons.png" alt="Try out interactive features" width="600">
+   <br>
+   <em>Try out interactive features!</em>
+</p>
 
-- Click and drag the character to reposition it
-- Use the buttons around the character to access features:
-  - Chat button: Start an inline chat
-  - Code review button: Review your current file
-  - Music button: Toggle lofi background music
-
-### Voice Commands
-
-1. Click on the microphone button or use the `cheerleader.startVoiceInteraction` command
-2. Speak your question or request
-3. Click "Stop" when you're done speaking
-4. Your cheerleader will process your speech and respond both visually and with audio
-
-### Code Review
-
-1. Open a file you want to review
-2. Run the `cheerleader.reviewCode` command or click the code review button
-3. Cheerleader will analyze your code and provide helpful feedback with voice explanations
-
-### Inline Chat
-
-1. Open a file you want to discuss
-2. Run `cheerleader.inlineChat` , `cheerleader.inlineChatVoice`, or use the inline chat button
-3. Ask questions about your code
-4. Receive conversational responses, code comments, or detailed explanations
-
-### Settings
-
-- Access the cheerleader controls from the sidebar
-- Configure API keys for text-to-speech and speech-to-text processes
-- Switch between different cheerleader characters
-- Toggle encouragement features on/off
-- Toggle productivity tracking on/off
+## Setup and Configuration
 
 ### API Keys Management
 
-You are required to provide your own ElevenLabs API key for text-to-speech feature. They provide free API keys with quite generous usage limits. You can sign up for an account and get your API key from [ElevenLabs](https://elevenlabs.io/).
+You can choose between ElevenLabs **OR** Hugging Face for text-to-speech and speech-to-text features. By default, we use ElevenLabs. ElevenLabs provides free API keys with quite generous usage limits. You can sign up for an account and get your API key from [ElevenLabs](https://elevenlabs.io/).
 
-We also offer an alternative speech-to-text service using [Hugging Face](https://huggingface.co/), which is free to use. You can sign up for an account and get your API key for free. Otherwise, we will use ElevenLabs by default.
+We also support alternative service using [Hugging Face](https://huggingface.co/), which is free to use. You can sign up for an account and get your API key for free. Otherwise, we will use ElevenLabs by default.
 
 > [!NOTE]
 > In future releases, we might consider adding local TTS and STT models to avoid the need for API keys. However, this will make the extension less accessible to many users who do not have the required hardware since these models are quite large.
+
+### Settings
+
+You can configure the following settings in the sidebar (with cheerleader icon):
+
+- **API Keys**: Enter your ElevenLabs or Hugging Face API key for TTS and STT features.
+
+- **Copilot Models**: Choose which Copilot models to use for inline chat and code review. Currently, we support `gpt4o`, `gpt4o-mini`, and `claude-3.5-sonnet`. Note that `o1` and `o1-mini` are said to be supported in their documentation but somehow not in reality...
+
+- **Anime Character**: Choose your favorite anime character from the list. The cheerleader will reload with the new character after a few seconds.
+
+- **Features Toggle**: Enable or disable different features of the cheerleader.
+
+> [!NOTE]
+> In a future release soon you will be able to bring any Live2D model you want by providing a URL. We will also expand the default catalog to include characters other than anime.
 
 ## Installation
 
 ### VSCode Extensions Marketplace
 
-We will be available on the VSCode Extensions Marketplace soon. For now, you can install from source with the steps below.
+We are officially listed on the VSCode Marketplace. Just search for "Cheerleader" in the extensions tab of VSCode and install it from there.
 
-## From Source
+### From Source
 
 `node.js` and `npm` are required for installing from source. You can install them from npm's [official website](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 
@@ -129,37 +104,27 @@ We will be available on the VSCode Extensions Marketplace soon. For now, you can
 
 6. Open VSCode and go to the extensions tab. Under more options, select "Install from VSIX" and select the `.vsix` file you just built to install it.
 
-## Extension Settings
+## Commands Catalog
 
-Extension settings can be configured in the activity sidebar under the cheerleader icon.
+If you wish to execute any of the commands **manually**, you can do so by opening the command palette (Ctrl+Shift+P) and type the command name:
 
-You can configure:
-
-- Your ElevenLabs API key for text-to-speech, Hugging Face API key for speech-to-text
-- Copilot models to use (gpt4o, gpt4o-mini, claude-3.5-sonnet), note that o1 and o1-mini are said to be supported on their documentation but somehow not in reality...
-- Anime character (takes a few seconds to reload, so be patient)
-- Toggle on/off different editor features
-
-> [!NOTE]
-> In a future release soon you will be able to bring any Live2D model you want by providing a URL. We will also expand the default catalog to include characters other than anime.
-
-## Commands
-
-- `cheerleader.inlineChatVoice`: Start a voice-based inline chat for the current file
-- `cheerleader.reviewCode`: Run a code review on the current file
-- `cheerleader.startVoiceInteraction`: Start a voice interaction with the cheerleader
+- `cheerleader.launchOverlay`: Launch the cheerleader overlay
+- `cheerleader.killOverlay`: Stop the cheerleader overlay
+- `cheerleader.inlineChat`: Open a text-based inline chat for the current file
+- `cheerleader.inlineChatVoice`: Start a voice-based inline chat for the current file **(Key binding: ctrl/cmd+shift+c)**
+- `cheerleader.rubberDuckVoice`: Start a voice-based rubber duck debugging session **(Key binding: ctrl/cmd+shift+d)**
+- `cheerleader.reviewCode`: Run a code review on the current file **(Key binding: ctrl/cmd+shift+r)**
+- `cheerleader.explainPastedCode`: Explain the pasted code
 
 - `cheerleader.toggleEncouragement`: Toggle encouragement features on/off
 - `cheerleader.toggleMonitoringRotting`: Toggle productivity monitoring
-- `cheerleader.togglePasteMe`: Toggle paste me feature **(TO BE ADDED)**
+- `cheerleader.togglePasteMonitoring`: Toggle paste me feature
 
 The following commands are used for testing and development purposes, categorized under "Testing":
 
+- `cheerleader.record`: Test recording audio
 - `cheerleader.testTTS`: Test text-to-speech functionality
 - `cheerleader.testEncouragement`: Test encouragement messages
-- `cheerleader.startRecording`: Start recording audio
-- `cheerleader.stopRecording`: Stop recording audio
-- `cheerleader.inlineChat`: Open a text-based inline chat for the current file
 
 ## Requirements
 
