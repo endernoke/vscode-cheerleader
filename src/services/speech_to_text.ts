@@ -1,8 +1,6 @@
 import * as fs from "fs";
 import { ElevenLabsClient } from "elevenlabs";
 import { APIManager } from "../utils/api_manager";
-import { pipeline } from "@huggingface/transformers";
-import { WaveFile } from "wavefile";
 
 type HuggingFaceClient = { apiKey: string };
 
@@ -62,41 +60,3 @@ export const convertSpeechToText = async (
     throw error;
   }
 };
-
-/**
- * Convert an audio file to text using Hugging Face's local Whisper model
- * This is kept as a fallback option but not actively used since API is faster
- * @param audioData Buffer containing the WAV audio data to transcribe
- * @returns Promise with the transcribed text
- */
-async function transcribeWithLocalWhisper(audioData: Buffer) {
-  const transcriber = await pipeline(
-    "automatic-speech-recognition",
-    "Xenova/whisper-tiny.en"
-  );
-
-  // WARNING: GEORGE FORBIDS YOU FROM ATTEMPTING TO MODIFY THIS CODE
-  // This is a direct copy from the Hugging Face documentation
-  // Apparently it requires some weird manipulation of the audio data
-  // to work with the ASR pipeline, it will not work if you pass in raw audio buffer
-  let wav = new WaveFile(audioData);
-  wav.toBitDepth("32f");
-  wav.toSampleRate(16000);
-  let data = wav.getSamples();
-  if (Array.isArray(data)) {
-    if (data.length > 1) {
-      const SCALING_FACTOR = Math.sqrt(2);
-
-      // Merge channels (into first channel to save memory)
-      for (let i = 0; i < data[0].length; ++i) {
-        data[0][i] = (SCALING_FACTOR * (data[0][i] + data[1][i])) / 2;
-      }
-    }
-
-    // Select first channel
-    data = data[0];
-  }
-
-  let output = transcriber(data);
-  return output;
-}

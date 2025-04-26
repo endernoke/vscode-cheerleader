@@ -4,7 +4,7 @@
 
 # Source code
 src/**
-out/test/**
+out/**
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map
@@ -15,9 +15,10 @@ out/test/**
 .vscode-test.mjs
 .vscode-test/**
 node_modules/**
-test/**
+**/test/**
 live2d-container/node_modules/**
 .env
+esbuild.config.js
 
 # Build tools and config
 .github/**
