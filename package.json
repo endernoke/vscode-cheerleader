@@ -3,7 +3,7 @@
   "displayName": "Cheerleader",
   "publisher": "cheerleader",
   "description": "Supercharge your dev experience with an anime coding companion",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.99.0"
   },
@@ -35,6 +35,11 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "taskDefinitions": [
+      {
+        "type": "cheerleader"
+      }
+    ],
     "commands": [
       {
         "command": "cheerleader.launchOverlay",

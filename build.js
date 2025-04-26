@@ -18,11 +18,16 @@ async function main() {
     sourcesContent: false,
     platform: "node",
     outfile: "dist/extension.js",
-    external: ["vscode", "mock-aws-s3", "aws-sdk", "nock", "@mapbox/node-pre-gyp"],
-    logLevel: "warning",
-    plugins: [
-      esbuildProblemMatcherPlugin,
+    external: [
+      "vscode",
+      "mock-aws-s3",
+      "aws-sdk",
+      "nock",
+      "@mapbox/node-pre-gyp",
+      // "@ffprobe-installer/",
     ],
+    logLevel: "warning",
+    plugins: [esbuildProblemMatcherPlugin],
   });
 
   if (watch) {

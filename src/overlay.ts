@@ -12,7 +12,6 @@ import { WebSocketService } from "./services/websocket_service";
 
 interface LaunchOverlayTaskDefinition extends TaskDefinition {
   type: string;
-  command: string;
 }
 
 function executeLaunchOverlayTask(overlayAppPath: string) {
@@ -22,7 +21,6 @@ function executeLaunchOverlayTask(overlayAppPath: string) {
 
   const taskDefinition: LaunchOverlayTaskDefinition = {
     type: "shell",
-    command: `${npxCommand} electron .`,
   };
 
   // Create shell execution with options to hide the terminal
@@ -36,7 +34,7 @@ function executeLaunchOverlayTask(overlayAppPath: string) {
   };
 
   // Use cwd to set the working directory to the overlay app path
-  const execution = new ShellExecution(taskDefinition.command, {
+  const execution = new ShellExecution(`${npxCommand} electron .`, {
     cwd: overlayAppPath,
   });
 

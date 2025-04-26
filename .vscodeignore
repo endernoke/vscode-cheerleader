@@ -19,7 +19,7 @@ recordings/**
 **/node_modules/**
 **/test/**
 .env
-esbuild.config.mjs
+eslint.config.mjs
 esbuild.js
 build.js
 overlay-build.js
