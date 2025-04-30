@@ -10,6 +10,7 @@ import { WebSocketService } from "./services/websocket_service";
 import { activateEncouragement } from "./services/encouragement_service";
 import { registerMonitoringCommand } from "./copilot-wrapper/rotting"
 import { registerPasteMeCommand } from "./copilot-wrapper/paste_me";
+import { activateHealth } from "./copilot-wrapper/health";
 import { activateSidebar } from "./sidebar";
 import { APIManager } from "./utils/api_manager";
 import { createCheerleaderChatParticipant } from "./copilot-wrapper/chat_participant";
@@ -19,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
   const apiManager = APIManager.getInstance(context);
   apiManager.initialize();
 
-  // Activate core components 
+  // Activate core components
   activateOverlay(context);
   activateSidebar(context);
 
@@ -32,9 +33,12 @@ export function activate(context: vscode.ExtensionContext) {
   // register editor commands
   activateTTS(context);
   registerAudioCommands(context);
-  registerMonitoringCommand(context);
   activateEncouragement(context);
   registerPasteMeCommand(context);
+
+  // register utility commands
+  activateHealth(context);
+  registerMonitoringCommand(context);
 
   // Register Chat Participant (disabled for now)
   createCheerleaderChatParticipant(context);
