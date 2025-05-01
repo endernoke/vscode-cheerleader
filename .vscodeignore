@@ -4,20 +4,25 @@
 
 # Source code
 src/**
-out/test/**
+out/**
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map
 **/*.ts
+live2d-container/**
+recordings/**
 
 # Development files
 .vscode/**
 .vscode-test.mjs
 .vscode-test/**
-node_modules/**
-test/**
-live2d-container/node_modules/**
+**/node_modules/**
+**/test/**
 .env
+eslint.config.mjs
+esbuild.js
+build.js
+overlay-build.js
 
 # Build tools and config
 .github/**

@@ -10,7 +10,7 @@
 Cheerleader brings a fun, interactive anime assistant to your VS Code environment that helps you stay motivated, productive, and engaged while coding with editor support and AI mentor.
 
 <p align="center">
-   <img src="assets/screenshots/demo.png" alt="Coding with Cheerleader" width="600">
+   <img src="resources/screenshots/demo.png" alt="Coding with Cheerleader" width="600">
    <br>
    <em>Coding with your anime companion</em>
 </p>
@@ -30,7 +30,7 @@ Cheerleader brings a fun, interactive anime assistant to your VS Code environmen
 Some background features can be configured in the sidebar, refer to the [Setup and Configuration](#setup-and-configuration) section below. Other features can be accessed through the overlay UI:
 
 <p align="center">
-   <img src="assets/screenshots/buttons.png" alt="Try out interactive features" width="600">
+   <img src="resources/screenshots/buttons.png" alt="Try out interactive features" width="600">
    <br>
    <em>Try out interactive features!</em>
 </p>
@@ -67,6 +67,14 @@ You can configure the following settings in the sidebar (with cheerleader icon):
 
 We are officially listed on the VSCode Marketplace. Just search for "Cheerleader" in the extensions tab of VSCode and install it from there.
 
+### From VSIX
+
+We provide a packaged version of the extension for every major and minor release. You can find the latest version and download the `cheerleader-<version>.vsix` file from the [Releases]() page.
+
+Then, open VSCode and go to the extensions tab. Under more options, select "Install from VSIX" and select the `.vsix` file you just built to install it.
+
+<img src="resources/screenshots/install.png" alt="Install from VSIX" width="500">
+
 ### From Source
 
 `node.js` and `npm` are required for installing from source. You can install them from npm's [official website](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
@@ -102,7 +110,7 @@ We are officially listed on the VSCode Marketplace. Just search for "Cheerleader
    vsce package
    ```
 
-6. Open VSCode and go to the extensions tab. Under more options, select "Install from VSIX" and select the `.vsix` file you just built to install it.
+6. This tool will generate a `.vsix` file in the current directory. You can then install it in VSCode following the instructions in [From VSIX](#from-vsix).
 
 ## Commands Catalog
 

@@ -116,7 +116,17 @@ export const playAudioFromFile = async (
   const webSocketService = WebSocketService.getInstance();
   try {
 
-    const audioDuration = customDuration ? customDuration : await getAudioDurationInSeconds(filePath)
+    let audioDuration = 3; // Default duration in seconds
+    if (customDuration) {
+      audioDuration = customDuration;
+    } else {
+      try { // catch this error because it relies on ffprobe which can break when bundling
+        audioDuration = await getAudioDurationInSeconds(filePath);
+      } catch (error) {
+        console.error("[playAudioFromFile] Error getting audio duration:", error);
+      }
+    }
+    
     const durationMs = Math.ceil(audioDuration * 1000);
 
     // Start Live2D character's speech animation
@@ -165,13 +175,24 @@ export const playTextToSpeech = async (text: string): Promise<void> => {
       `${uuid()}.mp3`
     );
 
-    await createAudioFileFromText(text, filename);
+    try {
+      await createAudioFileFromText(text, filename);
+    } catch (error) {
+      console.error("Error creating audio file:", error);
+      throw new Error("Failed to create audio file");
+    }
     if (!filename) {
       throw new Error("Failed to create audio file");
     }
+    console.log("Successfully created audio file:", filename);
 
-    const audioDuration = await getAudioDurationInSeconds(filename);
-    const durationMs = Math.ceil(audioDuration * 1000);
+    let duration = 3; // Default duration in seconds
+    try {
+      duration = await getAudioDurationInSeconds(filename);
+    } catch (error) {
+      console.error("Error getting audio duration:", error);
+    }
+    const durationMs = Math.ceil(duration * 1000);
 
     // Start Live2D character's speech animation
     webSocketService.startSpeak(text, durationMs);

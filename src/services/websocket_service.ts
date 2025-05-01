@@ -1,4 +1,5 @@
-import * as WebSocket from "ws";
+// import * as WebSocket from "ws";
+import WebSocket, { WebSocketServer } from "ws";
 import * as vscode from "vscode";
 
 export class WebSocketService {
@@ -21,7 +22,7 @@ export class WebSocketService {
       return;
     }
 
-    this.wss = new WebSocket.Server({ port: this.WS_PORT });
+    this.wss = new WebSocketServer({ port: this.WS_PORT });
     console.log("WebSocket server started on port", this.WS_PORT);
 
     this.wss.on("connection", (_ws) => {

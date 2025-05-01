@@ -1,14 +1,23 @@
 {
   "name": "cheerleader",
-  "displayName": "cheerleader",
+  "displayName": "Cheerleader",
+  "publisher": "cheerleader",
   "description": "Supercharge your dev experience with an anime coding companion",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.99.0"
   },
+  "icon": "assets/cheerleader_icon.png",
+  "author": {
+    "name": "James Zheng and Jet Chiang",
+    "email": "endernoke@gmail.com"
+  },
+  "pricing": "Free",
   "categories": [
     "Themes",
     "AI",
+    "Chat",
+    "Education",
     "Other"
   ],
   "repository": {
@@ -16,11 +25,21 @@
     "url": "https://github.com/endernoke/vscode-cheerleader"
   },
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/endernoke/vscode-cheerleader/issues",
+    "email": "endernoke@gmail.com"
+  },
+  "homepage": "https://github.com/endernoke/vscode-cheerleader/blob/main/README.md",
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
+    "taskDefinitions": [
+      {
+        "type": "cheerleader"
+      }
+    ],
     "commands": [
       {
         "command": "cheerleader.launchOverlay",
@@ -200,12 +219,15 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "compile": "npm run check-types && node build.js",
+    "check-types": "tsc --noEmit",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "vscode:prepublish": "npm run package",
+    "package": "npm run check-types && node build.js --production",
+    "deploy": "vsce publish",
+    "test": "npm run compile && node ./out/test/extension.test.js"
   },
   "devDependencies": {
     "@types/dotenv": "^6.1.1",
@@ -220,11 +242,12 @@
     "@typescript-eslint/parser": "^8.28.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.3.2",
+    "esbuild": "^0.25.3",
     "eslint": "^9.23.0",
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.4.2",
     "@vscode/prompt-tsx": "^0.4.0-alpha.3",
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
@@ -237,7 +260,6 @@
     "play-sound": "^1.1.6",
     "tsx": "^4.19.3",
     "uuid": "^11.1.0",
-    "wavefile": "^11.0.0",
     "ws": "^8.18.1"
   }
 }
