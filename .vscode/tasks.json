@@ -5,9 +5,9 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "watch",
-			"problemMatcher": "$tsc-watch",
+			"script": "compile",
 			"isBackground": true,
+			"problemMatcher": "$tsc-watch",
 			"presentation": {
 				"reveal": "never"
 			},

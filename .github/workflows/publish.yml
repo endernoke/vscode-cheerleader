@@ -1,4 +1,3 @@
-# .github/workflows/publish.yml
 name: Publish VSCode Extension
 
 on:
@@ -17,7 +16,9 @@ jobs:
         with:
           node-version: 18.x
 
-      - run: npm install
+      - run: npm install # install the extension deps
+
+      - run: cd live2d-container && npm install # install overlay deps
 
       - name: Publish Extension
         run: npm run deploy

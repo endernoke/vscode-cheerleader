@@ -3,7 +3,7 @@
   "displayName": "Cheerleader",
   "publisher": "cheerleader",
   "description": "Supercharge your dev experience with an anime coding companion",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "engines": {
     "vscode": "^1.99.0"
   },
@@ -199,6 +199,23 @@
           ],
           "default": "elevenlabs",
           "description": "The model provider to use for STT and TTS"
+        },
+        "cheerleader.health.breakReminderEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable break reminders"
+        },
+        "cheerleader.health.breakReminderIntervalMinutes": {
+          "type": "number",
+          "default": 45,
+          "description": "How often to remind for breaks (in minutes)"
+        },
+        "cheerleader.health.breakDurationMinutes": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 60,
+          "description": "How long each break should last (in minutes)"
         }
       }
     },

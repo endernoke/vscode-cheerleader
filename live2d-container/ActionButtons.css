@@ -45,3 +45,39 @@
   height: 24px;
   object-fit: contain;
 }
+
+.action-button {
+  position: relative;
+}
+
+.action-button .tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.action-button:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.action-buttons-container.left .tooltip {
+  left: calc(100% + 10px);
+  transform: translateY(-50%);
+  top: 50%;
+}
+
+.action-buttons-container.right .tooltip {
+  right: calc(100% + 10px);
+  transform: translateY(-50%);
+  top: 50%;
+}
