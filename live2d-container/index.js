@@ -157,7 +157,7 @@ const loadModel = async (url) => {
       window.electronAPI.onCloseButton();
     },
     icon: createSVGElement(Icons.CLOSE),
-    tooltip: 'Close'
+    tooltip: 'Quit Cheerleader'
   });
   
   buttonManager.addButton({
@@ -187,19 +187,24 @@ const loadModel = async (url) => {
   // Initialize music player
   const musicPlayer = new MusicPlayer();
 
+  // Since it modifies the innerHTML it should take care not to overwrite the tooltip
   buttonManager.addButton({
-    onClick: () => {
+    onClick: (event) => {
       const isPlaying = musicPlayer.toggleMusic();
-      // Update the icon based on play state
+      // Find the icon element and update only its content
       const button = event.currentTarget;
       if (button) {
-        button.innerHTML = isPlaying ?
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>' :
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+        // Clear existing icon content while preserving tooltip
+        const iconSVG = button.querySelector('svg');
+        if (iconSVG) {
+          iconSVG.innerHTML = isPlaying ?
+            '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>' :
+            '<path d="M8 5v14l11-7z"/>';
+        }
       }
     },
     icon: createSVGElement('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'),
-    tooltip: 'Toggle Lofi Music'
+    tooltip: "Toggle Lofi Music"
   });
 
   buttonManager.addButton({
@@ -215,7 +220,7 @@ const loadModel = async (url) => {
       window.electronAPI.runVSCodeCommand("cheerleader.rubberDuckVoice");
     },
     icon: createSVGElement(Icons.RUBBER_DUCK),
-    tooltip: "Rubber Duck",
+    tooltip: "Rubber Duck Debugger",
   });
 
   buttonManager.addButton({

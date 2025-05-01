@@ -15,7 +15,10 @@ class ActionButton {
     this.element.style.backgroundColor = backgroundColor;
     
     if (tooltip) {
-      this.element.title = tooltip;
+      const tooltipElement = document.createElement('div');
+      tooltipElement.className = 'tooltip';
+      tooltipElement.textContent = tooltip;
+      this.element.appendChild(tooltipElement);
     }
 
     if (icon) {

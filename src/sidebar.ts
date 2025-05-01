@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { APIManager, ServiceType } from "./utils/api_manager";
 import { WebSocketService } from "./services/websocket_service";
+import { HealthManager } from "./copilot-wrapper/health";
 
 /**
  * The Cheerleader decreed that the developers should not toil in silence. 
@@ -50,9 +51,30 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         case "toggleProductivity":
           vscode.commands.executeCommand("cheerleader.toggleMonitoringRotting");
           break;
-        case "togglePasteMonitoring":
-          vscode.commands.executeCommand("cheerleader.togglePasteMonitoring");
+        case "updateStopTime":
+          if (data.value) {
+            const success = HealthManager.getInstance().setStopTime(data.value);
+            if (success) {
+              vscode.window.showInformationMessage(`I'll remind you to stop working at ${data.value}!`);
+            }
+          }
           break;
+        case "togglePasteMonitoring":
+        vscode.commands.executeCommand("cheerleader.togglePasteMonitoring");
+        break;
+      case "toggleBreakReminders":
+        const config = vscode.workspace.getConfiguration('cheerleader.health');
+        const currentValue = config.get('breakReminderEnabled');
+        config.update('breakReminderEnabled', !currentValue, vscode.ConfigurationTarget.Global);
+        break;
+      case "updateBreakInterval":
+        vscode.workspace.getConfiguration('cheerleader.health')
+          .update('breakReminderIntervalMinutes', data.value, vscode.ConfigurationTarget.Global);
+        break;
+      case "updateBreakDuration":
+        vscode.workspace.getConfiguration('cheerleader.health')
+          .update('breakDurationMinutes', data.value, vscode.ConfigurationTarget.Global);
+        break;
         case "saveElevenLabsKey":
           await this.handleApiKeyUpdate("elevenlabs", data.value);
           break;
@@ -175,6 +197,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const productivityEnabled = vscode.workspace
       .getConfiguration()
       .get("cheerleader.productivity.monitoringEnabled", false);
+    const breakReminderEnabled = vscode.workspace
+      .getConfiguration('cheerleader.health')
+      .get("breakReminderEnabled", true);
+    const breakInterval = vscode.workspace
+      .getConfiguration('cheerleader.health')
+      .get("breakReminderIntervalMinutes", 45);
+    const breakDuration = vscode.workspace
+      .getConfiguration('cheerleader.health')
+      .get("breakDurationMinutes", 5);
     const pasteMeEnabled = vscode.workspace
       .getConfiguration()
       .get("cheerleader.paste.monitoringEnabled", false);
@@ -435,6 +466,30 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                 }</b>
                             </p>
                             <button onclick="togglePasteMe()">Toggle Paste Me</button>
+                            <p id="health-status" class="status">
+                                Break Reminders: <b>${breakReminderEnabled ? "Enabled" : "Disabled"}</b>
+                            </p>
+                            <p class="status">
+                                Break Interval: <b>${breakInterval} minutes</b>
+                                <input type="number" id="break-interval" class="api-input"
+                                    value="${breakInterval}" min="1" max="240"
+                                    onkeypress="if(event.key === 'Enter') { updateBreakInterval(this.value); return false; }">
+                            </p>
+                            <p class="status">
+                                Break Duration: <b>${breakDuration} minutes</b>
+                                <input type="number" id="break-duration" class="api-input"
+                                    value="${breakDuration}" min="1" max="60"
+                                    onkeypress="if(event.key === 'Enter') { updateBreakDuration(this.value); return false; }">
+                            </p>
+                            <button onclick="toggleBreakReminders()">Toggle Break Reminders</button>
+
+                            <p class="status">
+                                Stop Time:
+                                <input type="time" id="stop-time" class="api-input"
+                                    onchange="updateStopTime(this.value)"
+                                    onkeypress="if(event.key === 'Enter') { updateStopTime(this.value); return false; }">
+                                <br><small class="optional">Set time to stop working for today</small>
+                            </p>
                         </div>
                     </div>
 
@@ -533,6 +588,34 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                 status.textContent = 'Paste Me: ' + (isEnabled ? 'Enabled' : 'Disabled');
                                 status.className = 'status ' + (isEnabled ? 'status-enabled' : 'status-disabled');
                             }
+                        }
+                        function toggleBreakReminders() {
+                            vscode.postMessage({ type: 'toggleBreakReminders' });
+                            const status = document.getElementById('health-status');
+                            if (status) {
+                                const isEnabled = !status.textContent.includes('Enabled');
+                                status.textContent = 'Break Reminders: ' + (isEnabled ? 'Enabled' : 'Disabled');
+                                status.className = 'status ' + (isEnabled ? 'status-enabled' : 'status-disabled');
+                            }
+                        }
+                        function updateBreakInterval(value) {
+                            vscode.postMessage({
+                                type: 'updateBreakInterval',
+                                value: parseInt(value)
+                            });
+                        }
+                        function updateBreakDuration(value) {
+                            vscode.postMessage({
+                                type: 'updateBreakDuration',
+                                value: parseInt(value)
+                            });
+                        }
+
+                        function updateStopTime(value) {
+                            vscode.postMessage({
+                                type: 'updateStopTime',
+                                value: value
+                            });
                         }
 
                         // API key save functions
