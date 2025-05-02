@@ -5,7 +5,7 @@ import { APIManager } from "../utils/api_manager";
 type HuggingFaceClient = { apiKey: string };
 
 /**
- * Convert text to speech using the configured provider and save to a file
+ * Convert text to speech using the configured provider and save to a MP3 file
  * @param text The text to convert to speech
  * @param filePath Path where to save the audio file
  * @returns Promise with the file path of the saved audio
@@ -19,10 +19,13 @@ export const createAudioFileFromText = async (
     console.log(`Starting TTS conversion for text: "${text.substring(0, 50)}..."`);
     
     const apiManager = APIManager.getInstance();
-    const elevenlabsClient = apiManager.getClient<ElevenLabsClient>('elevenlabs');
-    const huggingfaceClient = apiManager.getClient<HuggingFaceClient>('huggingface');
-
-    if (elevenlabsClient) {
+    const provider = apiManager.getAudioProvider();
+    
+    if (provider === 'elevenlabs') {
+      const elevenlabsClient = apiManager.getClient<ElevenLabsClient>('elevenlabs');
+      if (!elevenlabsClient) {
+        throw new Error("ElevenLabs client is not initialized. Please set your API key in the sidebar.");
+      }
       return await new Promise<string>((resolve, reject) => {
         try {
           elevenlabsClient.textToSpeech.convert("vGQNBgLaiM3EdZtxIiuY", {
@@ -41,40 +44,7 @@ export const createAudioFileFromText = async (
       });
     }
 
-    if (huggingfaceClient) {
-      return await new Promise<string>((resolve, reject) => {
-        try {
-          fetch(
-            "https://router.huggingface.co/fal-ai/fal-ai/kokoro/american-english",
-            {
-              headers: {
-                Authorization: `Bearer ${huggingfaceClient.apiKey}`,
-                "Content-Type": "application/json",
-              },
-              method: "POST",
-              body: JSON.stringify({ inputs: text }),
-            }
-          ).then(async response => {
-            if (!response.ok) {
-              throw new Error(`API request failed with status ${response.status}`);
-            }
-
-            const audioData = await response.arrayBuffer();
-            const fileStream = createWriteStream(filePath);
-            
-            fileStream.write(Buffer.from(audioData));
-            fileStream.end();
-
-            fileStream.on("finish", () => resolve(filePath));
-            fileStream.on("error", reject);
-          }).catch(reject);
-        } catch (error) {
-          reject(error);
-        }
-      });
-    }
-
-    throw new Error("No text-to-speech provider is initialized. Please set your API key in the sidebar.");
+    throw new Error("ElevenLabs is the only supported text-to-speech provider. Please set your ElevenLabs API key in the sidebar.");
   } catch (error) {
     console.error("Error in TTS service:", error);
     throw error;
@@ -92,8 +62,12 @@ export const createAudioStreamFromText = async (
 ): Promise<Buffer> => {
   console.log(`Starting TTS conversion for text: "${text.substring(0, 50)}..."`);
   
-  const client = APIManager.getInstance().getClient<ElevenLabsClient>('elevenlabs');
+  const apiManager = APIManager.getInstance();
+  if (apiManager.getAudioProvider() !== 'elevenlabs') {
+    throw new Error("ElevenLabs is the only supported text-to-speech provider.");
+  }
   
+  const client = apiManager.getClient<ElevenLabsClient>('elevenlabs');
   if (!client) {
     throw new Error("ElevenLabs client is not initialized. Please set your API key in the sidebar.");
   }
