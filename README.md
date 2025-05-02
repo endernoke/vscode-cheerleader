@@ -1,7 +1,7 @@
 # Cheerleader
 
 <p align="center">
-  <img src="assets/cheerleader.png" alt="Cheerleader" width="100"><br>
+  <img src="assets/cheerleader_icon.png" alt="Cheerleader" width="100"><br>
   Supercharge your dev experience with an anime coding companion!
 </p>
 
@@ -52,7 +52,15 @@ You must provide your own ElevenLabs API key for text-to-speech and speech-to-te
 
 ### Settings
 
-You can configure the following settings in the sidebar (with cheerleader icon):
+You can configure the following settings in the sidebar (with cheerleader icon) OR the original settings panel (Ctrl+Shift+P -> Preferences: Open Settings (UI)):
+
+<p align="center">
+   <img src="resources/screenshots/settings.png" alt="Settings" width="600">
+   <br>
+   <em>Sidebar (left) and VSCode settings panel (right)</em>
+</p>
+
+Available setitngs include:
 
 - **API Keys**: Enter your ElevenLabs or Hugging Face API key for TTS and STT features.
 
@@ -61,6 +69,8 @@ You can configure the following settings in the sidebar (with cheerleader icon):
 - **Anime Character**: Choose your favorite anime character from the list. The cheerleader will reload with the new character after a few seconds.
 
 - **Features Toggle**: Enable or disable different features of the cheerleader.
+
+- **Feature Settings**: Configure settings like break reminder interval, time to quit session, etc from both the sidebar and the original settings panel
 
 > [!NOTE]
 > In a future release soon you will be able to bring any Live2D model you want by providing a URL. We will also expand the default catalog to include characters other than anime.

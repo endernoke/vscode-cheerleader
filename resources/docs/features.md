@@ -32,3 +32,11 @@ The cheerleader can play music to enhance your coding experience. We play a rand
 ### Explain Pasted Code
 
 The explain pasted code feature allows you to paste code into the cheerleader, and it will provide an explanation of what the code does. This feature is helpful for understanding unfamiliar code snippets or learning new programming concepts.
+
+## Others
+
+### Health
+
+Remind you to take a break for a certain interval to avoid mental and physical health deterioration due to focusing on electronic devices for too long. 
+
+Also reminds you to stop working (e.g. to go to bed) at your customized time and quits VSCode if you do not adhere :>
