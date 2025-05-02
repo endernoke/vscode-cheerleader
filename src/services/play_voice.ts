@@ -7,7 +7,7 @@ import { v4 as uuid } from "uuid";
 import path from "path";
 import { createAudioFileFromText } from "./text_to_speech";
 import { WebSocketService } from "./websocket_service";
-import getAudioDurationInSeconds from "get-audio-duration";
+var mp3Duration = require("mp3-duration");
 
 /**
  * "On the second day, George said 'Let there be sound!' and there was sound."
@@ -119,9 +119,18 @@ export const playAudioFromFile = async (
     let audioDuration = 3; // Default duration in seconds
     if (customDuration) {
       audioDuration = customDuration;
-    } else {
-      try { // catch this error because it relies on ffprobe which can break when bundling
-        audioDuration = await getAudioDurationInSeconds(filePath);
+    } else if (filePath.endsWith(".mp3")) {
+      try {
+        audioDuration = await new Promise((resolve, reject) => {
+          mp3Duration(filePath, (err: any, duration: number) => {
+            if (err) {
+              console.error("Error getting audio duration:", err);
+              reject(err);
+            } else {
+              resolve(duration);
+            }
+          });
+        });
       } catch (error) {
         console.error("[playAudioFromFile] Error getting audio duration:", error);
       }
@@ -188,7 +197,16 @@ export const playTextToSpeech = async (text: string): Promise<void> => {
 
     let duration = 3; // Default duration in seconds
     try {
-      duration = await getAudioDurationInSeconds(filename);
+      duration = await new Promise((resolve, reject) => {
+        mp3Duration(filename, (err: any, duration: number) => {
+          if (err) {
+            console.error("Error getting audio duration:", err);
+            reject(err);
+          } else {
+            resolve(duration);
+          }
+        });
+      });
     } catch (error) {
       console.error("Error getting audio duration:", error);
     }

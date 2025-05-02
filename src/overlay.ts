@@ -12,18 +12,20 @@ import { WebSocketService } from "./services/websocket_service";
 
 interface LaunchOverlayTaskDefinition extends TaskDefinition {
   type: string;
+  command: string;
+  cwd?: string;
 }
 
 function executeLaunchOverlayTask(overlayAppPath: string) {
-  // Make sure we're using the correct path for npx
   const isWindows = process.platform === "win32";
   const npxCommand = isWindows ? "npx.cmd" : "npx";
 
   const taskDefinition: LaunchOverlayTaskDefinition = {
     type: "shell",
+    command: `${npxCommand} electron .`,
+    cwd: overlayAppPath,
   };
 
-  // Create shell execution with options to hide the terminal
   const presentationOptions: TaskPresentationOptions = {
     reveal: vscode.TaskRevealKind.Never,
     panel: vscode.TaskPanelKind.Dedicated,
@@ -33,17 +35,17 @@ function executeLaunchOverlayTask(overlayAppPath: string) {
     clear: false,
   };
 
-  // Use cwd to set the working directory to the overlay app path
-  const execution = new ShellExecution(`${npxCommand} electron .`, {
-    cwd: overlayAppPath,
+  const execution = new ShellExecution(taskDefinition.command, {
+    cwd: taskDefinition.cwd,
   });
 
   const task = new Task(
     taskDefinition,
-    TaskScope.Global,
+    vscode.TaskScope.Workspace,
     "Cheerleader Overlay",
     "cheerleader",
-    execution
+    execution,
+    []
   );
 
   task.presentationOptions = presentationOptions;

@@ -1,9 +1,12 @@
 # Cheerleader
 
 <p align="center">
-  <img src="assets/cheerleader.png" alt="Cheerleader" width="50"><br>
+  <img src="assets/cheerleader.png" alt="Cheerleader" width="100"><br>
   Supercharge your dev experience with an anime coding companion!
 </p>
+
+> [!IMPORTANT]
+> We rely on LLMs provided through GitHub Copilot, so you must have Copilot enabled in your workspace.
 
 ## Features
 
@@ -39,9 +42,10 @@ Some background features can be configured in the sidebar, refer to the [Setup a
 
 ### API Keys Management
 
-You can choose between ElevenLabs **OR** Hugging Face for text-to-speech and speech-to-text features. By default, we use ElevenLabs. ElevenLabs provides free API keys with quite generous usage limits. You can sign up for an account and get your API key from [ElevenLabs](https://elevenlabs.io/).
+You must provide your own ElevenLabs API key for text-to-speech and speech-to-textn features. It can be obtained for free with quite generous usage limits by signing up for an account at [their website](https://elevenlabs.io/).
 
-We also support alternative service using [Hugging Face](https://huggingface.co/), which is free to use. You can sign up for an account and get your API key for free. Otherwise, we will use ElevenLabs by default.
+> [!CAUTION]
+> In the pre-release version, we used to support both ElevenLabs and HuggingFace. However, we have currently discontinued support for HuggingFace since the Kokoro TTS API is not reliable.
 
 > [!NOTE]
 > In future releases, we might consider adding local TTS and STT models to avoid the need for API keys. However, this will make the extension less accessible to many users who do not have the required hardware since these models are quite large.
@@ -141,9 +145,6 @@ The following commands are used for testing and development purposes, categorize
 - Electron.js
 - Microphone access (for voice interaction features)
 - GitHub Copilot
-
-> [!IMPORTANT]
-> We rely on LLM provided through GitHub Copilot, so you must have Copilot enabled in your workspace. At this time we do not support other vendors like OpenAI or Anthropic. Here is how to enable it...
 
 ## Contributing
 
