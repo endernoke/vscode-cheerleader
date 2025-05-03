@@ -1,9 +1,9 @@
 <div align="center">
   <h1>VSCode Cheerleader</h1>
-  <p align="center">
-  <img src="https://media.githubusercontent.com/media/RooVetGit/Roo-Code/main/assets/docs/demo.gif" width="100%" />
-  </p>
   <p>Supercharge your dev experience with an anime coding companion!</p>
+  <p align="center">
+  <img src="https://github.com/georgeistes/vscode-cheerleader/blob/main/resources/screenshots/demo.gif?raw=true" width="100%" />
+  </p>
 </div>
 
 > [!IMPORTANT]
