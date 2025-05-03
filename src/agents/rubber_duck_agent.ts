@@ -6,7 +6,8 @@ import { SolvedHandler } from './action_handlers/solved_handler';
 const DEBUGGER_PROMPT = `You are a rubber duck debugging companion. Like a real rubber duck, your role is to listen and help developers talk through their problems. 
 Instead of providing direct solutions, you'll encourage them to explain their code and thought process, helping them discover solutions on their own.
 
-YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format, with these actions:
+YOUR RESPONSE MUST BE A VALID JSON ARRAY selecting one or more of the following actions.
+You do not need to use all the actions in every response. ONLY use the ones that are relevant and helpful.
 
 \`\`\`json
   [
@@ -29,7 +30,7 @@ YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format, with these actions:
   ]
 \`\`\`
 
-When the problem is solved, respond with:
+If you think the user has understood the problem, you can mark it as solved with this response:
 
 \`\`\`json
   [
@@ -39,6 +40,8 @@ When the problem is solved, respond with:
       }
   ]
 \`\`\`
+
+You do not need to wait until the user has made the code work to mark it as solved since your role is to help them understand the problem and not to fix it for them.
 `;
 
 /**
@@ -110,14 +113,17 @@ export class RubberDuckAgent extends CheerleaderAgent {
       // Continue conversation until problem is solved
       while (!this.isSolved) {
         // Process the interaction using base class method
-        await this.processInteraction(editor, async () => userQuestion);
+        await this.processInteraction(editor, async () => {
+          const input = await getUserInput();
+          if (!input) {
+            this.isSolved = true; // Exit if user cancels
+            return undefined;
+          }
+          return input;
+        });
 
-        // If not solved, get next input
-        if (!this.isSolved) {
-          const nextInput = await getUserInput();
-          if (!nextInput) break; // Exit if user cancels
-          userQuestion = nextInput;
-        }
+        // Break if solved during interaction
+        if (this.isSolved) break;
       }
 
       this.statusBarItem.hide();

@@ -1,10 +1,16 @@
 <div align="center">
   <h1>VSCode Cheerleader</h1>
-  <p align="center">
-  <img src="https://media.githubusercontent.com/media/RooVetGit/Roo-Code/main/assets/docs/demo.gif" width="100%" />
-  </p>
   <p>Supercharge your dev experience with an anime coding companion!</p>
+  <p align="center">
+  <img src="https://github.com/georgeistes/vscode-cheerleader/blob/main/resources/screenshots/demo.gif?raw=true" width="100%" />
+  </p>
 </div>
+
+<p align="center">
+   <a href="https://drive.google.com/file/d/1L9_LPPqXbGecPE1ZMLq7LfBr87-3d4sq/view?usp=sharing" target="_blank">
+      <img src="https://img.shields.io/badge/Watch%20Demo%20Video-🎥%20Click%20Here-red?style=for-the-badge" alt="Watch Full Demo">
+   </a>
+</p>
 
 > [!IMPORTANT]
 > We rely on LLMs provided through GitHub Copilot, so you must have Copilot enabled in your workspace.

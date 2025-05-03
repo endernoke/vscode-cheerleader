@@ -217,27 +217,35 @@ export async function getAIResponseWithHistory(
       messages.push(vscode.LanguageModelChatMessage.User(options.customPrompt));
     }
 
-    // Add current user message if provided
-    if (userText) {
-      messages.push(vscode.LanguageModelChatMessage.User(userText));
+    // Add conversation history before new user message
+    if (history.length > 0) {
+      messages.push(
+        vscode.LanguageModelChatMessage.User(
+          "The following is the conversation history:"
+        )
+      );
+
+      for (const turn of history) {
+        if (turn.role === "user") {
+          messages.push(vscode.LanguageModelChatMessage.User(turn.content));
+        } else if (turn.role === "assistant") {
+          messages.push(vscode.LanguageModelChatMessage.Assistant(turn.content));
+        } else if (turn.role === "system") {
+          // System messages are treated as user messages since VS Code API doesn't have System type
+          messages.push(vscode.LanguageModelChatMessage.User(turn.content));
+        }
+      }
     }
 
     messages.push(
       vscode.LanguageModelChatMessage.User(
-        "The fowlowing is the conversation history:"
+        "The following is what the user said:"
       )
     );
 
-    // Add conversation history
-    for (const turn of history) {
-      if (turn.role === "user") {
-        messages.push(vscode.LanguageModelChatMessage.User(turn.content));
-      } else if (turn.role === "assistant") {
-        messages.push(vscode.LanguageModelChatMessage.Assistant(turn.content));
-      } else if (turn.role === "system") {
-        // System messages are treated as user messages since VS Code API doesn't have System type
-        messages.push(vscode.LanguageModelChatMessage.User(turn.content));
-      }
+    // Add current user message last if provided
+    if (userText) {
+      messages.push(vscode.LanguageModelChatMessage.User(userText));
     }
 
     // Add file context if provided (to the end of the messages)
@@ -263,6 +271,8 @@ export async function getAIResponseWithHistory(
     }
 
     // Add the conversation turns to history
+    // Note that we never add the file context to the history
+    // because it is not part of the conversation
     if (userText) {
       historyManager.addTurn({
         role: "user",
