@@ -1,69 +1,11 @@
 import { playAudioFromFile } from "../services/play_voice";
 import * as vscode from "vscode";
-import type { Result } from "get-windows";
 
 /**
  * George called the Cheerleader to the mountains and delivered the first commandment:
  * "Thou shalt not rot, for I have given you the power to be productive."
  * -- The Georgeiste Manifesto, Chapter 3, Verse 1
  */
-function isProductive(result: Result): boolean {
-  const productiveApps = [
-    "Visual Studio Code",
-    "Code",
-    "iTerm2",
-    "Terminal",
-    "Firefox",
-    "Notion",
-    "Slack",
-    "Trello",
-    "Asana",
-    "Microsoft Teams",
-    "Zoom",
-    "Stack Overflow",
-    "Medium",
-    "Wikipedia",
-    "Microsoft Word",
-    "Microsoft Excel",
-    "Microsoft PowerPoint",
-    "ChatGPT",
-    "Electron",
-  ];
-
-  const productiveDomains = [
-    /docs\.google\.com/,
-    /github\.com/,
-    /notion\.so/,
-    /trello\.com/,
-    /slack\.com/,
-    /asana\.com/,
-    /microsoft\.com/,
-    /stackoverflow\.com/,
-    /medium\.com/,
-    /wikipedia\.org/,
-  ];
-
-  // Extract the app name and URL from the result
-  const appName = result.owner.name; // Example: "Code", "Safari"
-  const url = result.platform == "macos" ? result.url : result.title; // Example: "Personal - Instagram" (for web browsers)
-
-  // Check if the app is in the productive apps list
-  if (productiveApps.includes(appName)) {
-    return true;
-  }
-
-  if (url && productiveApps.some((app) => url.includes(app))) {
-    return true;
-  }
-
-  // Check if the URL belongs to a productive domain
-  if (url && productiveDomains.some((pattern) => pattern.test(url))) {
-    return true;
-  }
-
-  // Default unproductive 
-  return false;
-}
 
 const audioFiles = {
   "rotting1.mp3": "Hmm, rotting again?",
@@ -74,17 +16,13 @@ const audioFiles = {
 let globalContext: vscode.ExtensionContext;
 
 async function monitorRotting() {
-  // Dynamically import get-windows
-  const { activeWindow } = await import('get-windows');
-  const result = await activeWindow();
-  if (!result) return;
-
-  const currentProductiveState = isProductive(result);
+  // Consider user productive only when VSCode window is focused
+  const currentProductiveState = vscode.window.state.focused;
   const lastProductiveState = globalContext.globalState.get<boolean>("lastProductiveState", true);
   
   // Only notify when transitioning from productive to unproductive
   if (lastProductiveState && !currentProductiveState) {
-    console.log("Unproductive app detected:", result.owner.name);
+    console.log("VSCode window lost focus - user may be getting distracted");
     const audioFileEntries = Object.entries(audioFiles);
     const [fileName, text] = audioFileEntries[Math.floor(Math.random() * audioFileEntries.length)];
     const audioFilePath = vscode.Uri.file(

@@ -252,11 +252,8 @@
   "dependencies": {
     "@vscode/prompt-tsx": "^0.4.0-alpha.3",
     "axios": "^1.8.4",
-    "dotenv": "^16.4.7",
     "electron": "^35.1.1",
     "elevenlabs": "^1.55.0",
-    "get-audio-duration": "^4.0.1",
-    "get-windows": "^9.2.0",
     "markdown-it": "^13.0.2",
     "mp3-duration": "^1.1.0",
     "node-microphone": "^0.1.6",
