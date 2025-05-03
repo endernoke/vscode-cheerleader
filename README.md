@@ -1,31 +1,33 @@
-# Cheerleader
-
-<p align="center">
-  <img src="assets/cheerleader_icon.png" alt="Cheerleader" width="100"><br>
-  Supercharge your dev experience with an anime coding companion!
-</p>
+<div align="center">
+  <h1>VSCode Cheerleader</h1>
+  <p align="center">
+  <img src="https://media.githubusercontent.com/media/RooVetGit/Roo-Code/main/assets/docs/demo.gif" width="100%" />
+  </p>
+  <p>Supercharge your dev experience with an anime coding companion!</p>
+</div>
 
 > [!IMPORTANT]
 > We rely on LLMs provided through GitHub Copilot, so you must have Copilot enabled in your workspace.
 
 ## Features
 
-Cheerleader brings a fun, interactive anime assistant to your VS Code environment that helps you stay motivated, productive, and engaged while coding with editor support and AI mentor.
+**Cheerleader** brings a fun, interactive anime assistant to your VS Code environment that helps you stay motivated, productive, and engaged while coding with editor support and AI mentor.
 
 <p align="center">
-   <img src="resources/screenshots/demo.png" alt="Coding with Cheerleader" width="600">
+   <img src="resources/screenshots/home.png" alt="Coding with Cheerleader" width="600">
    <br>
    <em>Coding with your anime companion</em>
 </p>
 
-- Interactive anime character that floats on your screen and motivates you
+- **Interactive Avatar**: A fully customizable character that reacts to your mouse movements and clicks, bringing your workspace to life.
 
-- Audio code support and AI assistance such as inline chat, code review, rubber duck debugging that integrates with your editor (like Copilot but entirely voice-based)
+- **Voice Interaction**: Hit a roadblock? Talk it out with cheerleader — voice-first help that does everything Copilot Chat can, but with extra flair and personality.
 
-- Get encouraging messages based on your coding activity, console output, build/test results, LSP feedback, and more
+- **Motivation Boost**: Get real-time encouragement and compliments based on your coding activity, console results, and LSP feedback.
 
-- Cheer you up with productivity monitoring, music, and compliments
+- **Focus and Wellness**: Stay on track with productivity nudges and reminders to take breaks or end sessions for a healthier workflow.
 
+> [!NOTE]
 > For a detailed description of each feature, please refer to [this page](docs/features.md)
 
 ## Usage
@@ -139,6 +141,18 @@ In the future, we plan to extend more unique functionalities to the cheerleader 
 > [!NOTE]
 > We welcome contributions and suggestions from the community so that we know what features you would like to see in the future. Feel free to open an issue or PR on our GitHub repository.
 
+## Philosophy
+
+**We believe coding should feel less like solitary, mundane work and more like a creative jam session.** That’s why we built the cheerleader — not just as an assistant, but as a vibrant, voice-driven companion that brings energy, motivation, and a bit of fun to your coding flow.
+
+Most coding agents today (like Copilot, Cursor, or Roo) are powerful but sterile — all utility, no personality. They’re optimized for efficiency, but forget that creativity thrives in an environment that’s playful, human, and a little unexpected. We’re flipping the script by making human-computer interaction not only smart, but emotionally engaging.
+
+We also see coding as inherently social — even when you’re solo. Whether you’re rubber-ducking a bug or celebrating a passing test, the cheerleader is there to respond, react, and cheer you on in real time.
+
+Importantly, we’re not trying to replace mature agentic tools which are optimized and excellent. Cheerleader is here to complement and emphasize **reflection and growth**. It’s ideal for moments when you want to think through a problem, like grinding LeetCode or learning a new language — not just vibe code your way through it. Our goal isn’t to automate away the effort, but to make the effort more meaningful. That’s how human skill is perfected.
+
+**We're building a collaborator with charm.** One that talks, listens, celebrates small wins, and nudges you forward when you hit a wall. Programming should be powerful _and_ delightful. That’s our philosophy.
+
 ## Commands Catalog
 
 If you wish to execute any of the commands **manually**, you can do so by opening the command palette (Ctrl+Shift+P) and type the command name:
@@ -160,14 +174,6 @@ The following commands are used for testing and development purposes, categorize
 - `cheerleader.record`: Test recording audio
 - `cheerleader.testTTS`: Test text-to-speech functionality
 - `cheerleader.testEncouragement`: Test encouragement messages
-
-## Requirements
-
-- VS Code
-- Node.js
-- Electron.js
-- Microphone access (for voice interaction features)
-- GitHub Copilot
 
 ## Contributing
 
