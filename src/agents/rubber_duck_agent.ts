@@ -42,8 +42,10 @@ When the problem is solved, respond with:
 `;
 
 /**
- * RubberDuckAgent specializes in debugging through conversation.
- * It maintains a continuous dialogue until the problem is solved.
+ * "You must stay vigilant against the temptation of vibe coding by Daisy Duck",
+ * commanded George to his followers. "For this reason, I shall gift you with a
+ * rubber duck, a symbol of our commitment to the art of debugging."
+ * -- The Georgeiste Manifesto, Chapter 3, Verse 5
  */
 export class RubberDuckAgent extends CheerleaderAgent {
   private isSolved: boolean = false;
