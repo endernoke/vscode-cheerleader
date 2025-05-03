@@ -184,12 +184,12 @@ export abstract class CheerleaderAgent {
     try {
       this.isProcessing = true;
 
-      // Get file content
-      const fileContent = editor.document.getText();
-
-      // Get user question
+      // Get user question first to avoid unnecessary file content processing
       const userQuestion = await getUserInput();
       if (!userQuestion) return;
+
+      // Get fresh file content after user input
+      const fileContent = editor.document.getText();
 
       // Get AI response using the specialized prompt
       const aiResponse = await getAIResponseWithHistory(
@@ -206,7 +206,13 @@ export abstract class CheerleaderAgent {
 
       // Parse and process actions from the AI response
       const actions = this.parseResponse(aiResponse);
+      
+      // Process actions and ensure editor is updated
+      await editor.document.save(); // Save any pending changes
       await this.processActions(editor, actions);
+      
+      // Ensure changes are visible in editor
+      await editor.document.save();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       vscode.window.showErrorMessage(`Interaction failed: ${errorMessage}`);
