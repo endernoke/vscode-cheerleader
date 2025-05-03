@@ -83,7 +83,7 @@ We are officially listed on the VSCode Marketplace. Just search for "Cheerleader
 
 ### From VSIX
 
-We provide a packaged version of the extension for every major and minor release. You can find the latest version and download the `cheerleader-<version>.vsix` file from the [Releases]() page.
+We provide a packaged version of the extension for every major and minor release. You can find the latest version and download the `cheerleader-<version>.vsix` file from the [Releases](https://github.com/georgeistes/vscode-cheerleader/releases) page.
 
 Then, open VSCode and go to the extensions tab. Under more options, select "Install from VSIX" and select the `.vsix` file you just built to install it.
 
@@ -125,6 +125,19 @@ Then, open VSCode and go to the extensions tab. Under more options, select "Inst
    ```
 
 6. This tool will generate a `.vsix` file in the current directory. You can then install it in VSCode following the instructions in [From VSIX](#from-vsix).
+
+## How It Works
+
+Cheerleader is the world's first interactive anime assistant for VSCode powered by VSCode API and Copilot.
+
+![how-it-works](resources/docs/how-it-works.png)
+
+In addition, the character avatar is rendered using the [PixiJS](https://pixijs.com/) library, which is a 2D rendering engine that uses WebGL and HTML5. The character model is built using [Live2D](https://www.live2d.com/en/) technology.
+
+In the future, we plan to extend more unique functionalities to the cheerleader that would make programming more fun and engaging while also improving productivity and convenience. 
+
+> [!NOTE]
+> We welcome contributions and suggestions from the community so that we know what features you would like to see in the future. Feel free to open an issue or PR on our GitHub repository.
 
 ## Commands Catalog
 
