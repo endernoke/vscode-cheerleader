@@ -15,7 +15,7 @@ const path = require('path');
 const USE_WEBSOCKET = app.commandLine.getSwitchValue("use-websocket") === "false" ? false : true;
 
 let mainWindow;
-const WS_PORT = 3000;
+const WS_PORT = 54321;
 let ws = null;
 
 function showWelcomeMessage() {

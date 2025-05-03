@@ -14,11 +14,6 @@ import { ExplainHandler } from './action_handlers/explain_handler';
 import { HighlightHandler } from './action_handlers/highlight_handler';
 
 /**
- * Abstract base class for all Cheerleader agents.
- * It encapsulates common functionality for text and voice interactions.
- * 
- */
-/**
  * An abstract base class representing a Cheerleader Agent that provides interactive code assistance.
  * This class handles both voice and text-based interactions, manages action handlers, and processes AI responses.
  * 
@@ -230,34 +225,44 @@ export abstract class CheerleaderAgent {
    * @param response AI response string.
    */
   private parseResponse(response: string): BasicCheerleaderAction[] {
-    // Find start of JSON block
-    const startIndex = response.indexOf("```json");
-    if (startIndex === -1) {
-      console.debug("No JSON block found in response");
-      return [{
-        action: "conversation",
-        content: response.trim()
-      }];
-    }
-
-    // Remove markdown formatting
-    const jsonStart = response.indexOf("[", startIndex);
-    let jsonContent = response.substring(jsonStart);
-    const blockEnd = jsonContent.indexOf("```");
-    if (blockEnd !== -1) {
-      jsonContent = jsonContent.substring(0, blockEnd);
-    }
-
-    // Parse JSON
     try {
+      // Sanitize input
+      const sanitizedResponse = response.trim();
+      
+      // Find JSON block boundaries
+      const jsonBlockMatch = sanitizedResponse.match(/```json\s*([\s\S]*?)\s*```/);
+      
+      // If the response fails or parsing fails, do not return the block as response
+      // but throw an error instead. This is because it will be wasting TTS token
+      // and the user will not be able to see the error message.
+      if (!jsonBlockMatch) {
+        throw new Error("No JSON block found in response"); 
+      }
+
+      // Extract JSON content from the matched block
+      const jsonContent = jsonBlockMatch[1].trim();
+      
+      if (!jsonContent) {
+        throw new Error("Empty JSON block found");
+      }
+
+      // Parse JSON with validation
       const actions = JSON.parse(jsonContent);
+      
+      // Validate that actions is an array
+      if (!Array.isArray(actions)) {
+        throw new Error("Parsed JSON is not an array");
+      }
+
       console.debug("Successfully parsed JSON array:", actions);
       return actions;
+      
     } catch (e) {
-      console.debug("JSON parse error:", e);
+      console.error("JSON parse error:", e);
+      // Return the original response as conversation if parsing fails
       return [{
         action: "conversation",
-        content: response.trim()
+        content: "Oops! There was an error handling the AI response."
       }];
     }
   }

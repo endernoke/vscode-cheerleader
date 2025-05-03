@@ -1,7 +1,10 @@
 import { TextEditor } from 'vscode';
 import { CheerleaderAgent } from './cheerleader_agent';
 
-const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY using this format:
+const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving problems directly. YOUR RESPONSE MUST BE A VALID JSON ARRAY of the following actions,
+    but you do NOT need to use all the actions, only use the ones that are relevant and do not include the actions if they do not help solve the problem.
+    For example, if the user asks a general question, you only need to use the "conversation" action.
+
     \`\`\`json
     [
         {
@@ -27,10 +30,12 @@ const INLINE_CHAT_PROMPT = `Guide users to understand code rather than solving p
         }
     ]
     \`\`\`
+
     If you need to include diagrams in your explanation, use the following syntax:
     \`\`\`mermaid
     <mermaid_diagram_here>
     \`\`\`
+    
     Always start with a conversational response, then add necessary actions. Focus on teaching patterns and concepts.`;
 
 /**

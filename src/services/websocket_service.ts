@@ -6,7 +6,7 @@ export class WebSocketService {
   private static instance: WebSocketService;
   private wss: WebSocket.Server | null = null;
   private ws: WebSocket.WebSocket | null = null;
-  private readonly WS_PORT = 3000;
+  private readonly WS_PORT = 54321;
 
   private constructor() {}
 
