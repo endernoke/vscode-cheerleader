@@ -3,7 +3,7 @@
   "displayName": "Cheerleader",
   "publisher": "cheerleader",
   "description": "Supercharge your dev experience with an anime coding companion",
-  "version": "0.0.6",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.99.0"
   },
@@ -218,22 +218,7 @@
           "description": "How long each break should last (in minutes)"
         }
       }
-    },
-    "chatParticipants": [
-      {
-        "id": "cheerleader.chat",
-        "name": "cheerleader",
-        "fullName": "Cheerleader AI",
-        "description": "Supercharge your dev experience with an anime coding companion",
-        "isSticky": false,
-        "commands": [
-          {
-            "name": "explain",
-            "description": "Explain key concept in the code with diagram"
-          }
-        ]
-      }
-    ]
+    }
   },
   "scripts": {
     "compile": "npm run check-types && node build.js",
@@ -273,6 +258,7 @@
     "get-audio-duration": "^4.0.1",
     "get-windows": "^9.2.0",
     "markdown-it": "^13.0.2",
+    "mp3-duration": "^1.1.0",
     "node-microphone": "^0.1.6",
     "play-sound": "^1.1.6",
     "tsx": "^4.19.3",

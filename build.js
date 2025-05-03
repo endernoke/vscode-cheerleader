@@ -24,7 +24,6 @@ async function main() {
       "aws-sdk",
       "nock",
       "@mapbox/node-pre-gyp",
-      // "@ffprobe-installer/",
     ],
     logLevel: "warning",
     plugins: [esbuildProblemMatcherPlugin],

@@ -1,9 +1,12 @@
 # Cheerleader
 
 <p align="center">
-  <img src="assets/cheerleader.png" alt="Cheerleader" width="50"><br>
+  <img src="assets/cheerleader_icon.png" alt="Cheerleader" width="100"><br>
   Supercharge your dev experience with an anime coding companion!
 </p>
+
+> [!IMPORTANT]
+> We rely on LLMs provided through GitHub Copilot, so you must have Copilot enabled in your workspace.
 
 ## Features
 
@@ -39,16 +42,25 @@ Some background features can be configured in the sidebar, refer to the [Setup a
 
 ### API Keys Management
 
-You can choose between ElevenLabs **OR** Hugging Face for text-to-speech and speech-to-text features. By default, we use ElevenLabs. ElevenLabs provides free API keys with quite generous usage limits. You can sign up for an account and get your API key from [ElevenLabs](https://elevenlabs.io/).
+You must provide your own ElevenLabs API key for text-to-speech and speech-to-textn features. It can be obtained for free with quite generous usage limits by signing up for an account at [their website](https://elevenlabs.io/).
 
-We also support alternative service using [Hugging Face](https://huggingface.co/), which is free to use. You can sign up for an account and get your API key for free. Otherwise, we will use ElevenLabs by default.
+> [!CAUTION]
+> In the pre-release version, we used to support both ElevenLabs and HuggingFace. However, we have currently discontinued support for HuggingFace since the Kokoro TTS API is not reliable.
 
 > [!NOTE]
 > In future releases, we might consider adding local TTS and STT models to avoid the need for API keys. However, this will make the extension less accessible to many users who do not have the required hardware since these models are quite large.
 
 ### Settings
 
-You can configure the following settings in the sidebar (with cheerleader icon):
+You can configure the following settings in the sidebar (with cheerleader icon) OR the original settings panel (Ctrl+Shift+P -> Preferences: Open Settings (UI)):
+
+<p align="center">
+   <img src="resources/screenshots/settings.png" alt="Settings" width="600">
+   <br>
+   <em>Sidebar (left) and VSCode settings panel (right)</em>
+</p>
+
+Available setitngs include:
 
 - **API Keys**: Enter your ElevenLabs or Hugging Face API key for TTS and STT features.
 
@@ -57,6 +69,8 @@ You can configure the following settings in the sidebar (with cheerleader icon):
 - **Anime Character**: Choose your favorite anime character from the list. The cheerleader will reload with the new character after a few seconds.
 
 - **Features Toggle**: Enable or disable different features of the cheerleader.
+
+- **Feature Settings**: Configure settings like break reminder interval, time to quit session, etc from both the sidebar and the original settings panel
 
 > [!NOTE]
 > In a future release soon you will be able to bring any Live2D model you want by providing a URL. We will also expand the default catalog to include characters other than anime.
@@ -69,7 +83,7 @@ We are officially listed on the VSCode Marketplace. Just search for "Cheerleader
 
 ### From VSIX
 
-We provide a packaged version of the extension for every major and minor release. You can find the latest version and download the `cheerleader-<version>.vsix` file from the [Releases]() page.
+We provide a packaged version of the extension for every major and minor release. You can find the latest version and download the `cheerleader-<version>.vsix` file from the [Releases](https://github.com/georgeistes/vscode-cheerleader/releases) page.
 
 Then, open VSCode and go to the extensions tab. Under more options, select "Install from VSIX" and select the `.vsix` file you just built to install it.
 
@@ -112,6 +126,19 @@ Then, open VSCode and go to the extensions tab. Under more options, select "Inst
 
 6. This tool will generate a `.vsix` file in the current directory. You can then install it in VSCode following the instructions in [From VSIX](#from-vsix).
 
+## How It Works
+
+Cheerleader is the world's first interactive anime assistant for VSCode powered by VSCode API and Copilot.
+
+![how-it-works](resources/docs/how-it-works.png)
+
+In addition, the character avatar is rendered using the [PixiJS](https://pixijs.com/) library, which is a 2D rendering engine that uses WebGL and HTML5. The character model is built using [Live2D](https://www.live2d.com/en/) technology.
+
+In the future, we plan to extend more unique functionalities to the cheerleader that would make programming more fun and engaging while also improving productivity and convenience. 
+
+> [!NOTE]
+> We welcome contributions and suggestions from the community so that we know what features you would like to see in the future. Feel free to open an issue or PR on our GitHub repository.
+
 ## Commands Catalog
 
 If you wish to execute any of the commands **manually**, you can do so by opening the command palette (Ctrl+Shift+P) and type the command name:
@@ -141,9 +168,6 @@ The following commands are used for testing and development purposes, categorize
 - Electron.js
 - Microphone access (for voice interaction features)
 - GitHub Copilot
-
-> [!IMPORTANT]
-> We rely on LLM provided through GitHub Copilot, so you must have Copilot enabled in your workspace. At this time we do not support other vendors like OpenAI or Anthropic. Here is how to enable it...
 
 ## Contributing
 

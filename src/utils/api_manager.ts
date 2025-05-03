@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { ElevenLabsClient } from 'elevenlabs';
 
-export type ServiceType = 'elevenlabs' | 'huggingface';
-export type AudioProvider = 'elevenlabs' | 'huggingface';
+export type ServiceType = 'elevenlabs';
+export type AudioProvider = 'elevenlabs';
 
 interface APIManagerEvents {
     onKeyChange: (service: ServiceType, key: string) => void;
@@ -111,9 +111,6 @@ export class APIManager {
                 case 'elevenlabs':
                     this.clients.set(service, this.createElevenLabsClient(key));
                     break;
-                case 'huggingface':
-                    this.clients.set(service, { apiKey: key });
-                    break;
             }
         } catch (error) {
             console.error(`Failed to initialize ${service} client:`, error);
@@ -157,9 +154,6 @@ export class APIManager {
                 case 'elevenlabs':
                     const client = new ElevenLabsClient({ apiKey: key });
                     await client.voices.getAll();
-                    return true;
-                case 'huggingface':
-                    // Implement Hugging Face key validation if needed
                     return true;
                 default:
                     return false;

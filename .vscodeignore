@@ -38,6 +38,7 @@ examples/**
 images/**/*.psd
 *.md
 !README.md
+resources/**
 
 # Misc
 .editorconfig

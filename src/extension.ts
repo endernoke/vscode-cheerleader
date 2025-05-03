@@ -13,7 +13,7 @@ import { registerPasteMeCommand } from "./copilot-wrapper/paste_me";
 import { activateHealth } from "./copilot-wrapper/health";
 import { activateSidebar } from "./sidebar";
 import { APIManager } from "./utils/api_manager";
-import { createCheerleaderChatParticipant } from "./copilot-wrapper/chat_participant";
+// import { createCheerleaderChatParticipant } from "./copilot-wrapper/chat_participant";
 
 export function activate(context: vscode.ExtensionContext) {
   // Initialize API Manager first
@@ -41,7 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerMonitoringCommand(context);
 
   // Register Chat Participant (disabled for now)
-  createCheerleaderChatParticipant(context);
+  // createCheerleaderChatParticipant(context);
 
   // Add disposal of WebSocket service
   context.subscriptions.push(
