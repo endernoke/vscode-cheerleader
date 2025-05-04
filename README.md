@@ -58,6 +58,17 @@ You must provide your own ElevenLabs API key for text-to-speech and speech-to-te
 > [!NOTE]
 > In future releases, we might consider adding local TTS and STT models to avoid the need for API keys. However, this will make the extension less accessible to many users who do not have the required hardware since these models are quite large.
 
+### Electron.js
+
+We require `electron.js` to create an overlay window for the cheerleader (because it is dangerous and impossible to do so within the VSCode workspace editor). We recommend installing it globally so you don't need to install it individually for every workspace.
+
+```sh
+npm install -g electron
+```
+
+> [!NOTE]
+> If you do not have electron installed, a terminal will pop up when you launch the cheerleader to prompt you to install it (type Enter or "y" to install).
+
 ### Settings
 
 You can configure the following settings in the sidebar (with cheerleader icon) OR the original settings panel (Ctrl+Shift+P -> Preferences: Open Settings (UI)):
