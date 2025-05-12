@@ -69,6 +69,16 @@ npm install -g electron
 > [!NOTE]
 > If you do not have electron installed, a terminal will pop up when you launch the cheerleader to prompt you to install it (type Enter or "y" to install).
 
+### Customizing Cheerleader
+
+Other than the existing anime characters, you can use your own Live2D model, either found online or created by yourself with Live2D Cubism. To do this, paste in either the **URL** or **absolute local path** to the `model.json` file in the sidebar settings.
+
+Here are few free collections of Live2D models on GitHub (we do not own nor are affiliated with any of these repositories):
+
+- [iCharlesZ/vscode-live2d-models](https://github.com/iCharlesZ/vscode-live2d-models/tree/master)
+
+- [imuncle/live2d](https://github.com/imuncle/live2d)
+
 ### Settings
 
 You can configure the following settings in the sidebar (with cheerleader icon) OR the original settings panel (Ctrl+Shift+P -> Preferences: Open Settings (UI)):
