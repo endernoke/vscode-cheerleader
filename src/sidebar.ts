@@ -82,9 +82,23 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           // Hugging Face support removed
           break;
         case "changeCharacter":
-          WebSocketService.getInstance().sendMessage("changeModel", {
-            modelIndex: data.index,
-          });
+          console.log(data);
+          if (data.customModelURL) {
+            // Store custom model URL in configuration
+            const modelConfig = vscode.workspace.getConfiguration('cheerleader.model');
+            await modelConfig.update('customModelURL', data.customModelURL, vscode.ConfigurationTarget.Global);
+
+            console.log(data.customModelURL);
+            
+            WebSocketService.getInstance().sendMessage("changeModel", {
+              modelIndex: -1, // Special index for custom model
+              customModelURL: data.customModelURL
+            });
+          } else {
+            WebSocketService.getInstance().sendMessage("changeModel", {
+              modelIndex: data.index,
+            });
+          }
           break;
         case "updateModelConfig":
           await this.handleModelConfigUpdate(data.config);
@@ -209,6 +223,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       .get("cheerleader.paste.monitoringEnabled", false);
 
     // Create character paths for the grid
+    // Get custom model URL from configuration
+    const customModelURL = vscode.workspace.getConfiguration('cheerleader.model').get('customModelURL', '');
+
     const characters = [
         "Nika",
         "Neko",
@@ -409,6 +426,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             <h3>Character Selection</h3>
                         </div>
                         <div class="section-content">
+                            <div class="custom-model-section">
+                                <div class="custom-model-input">
+                                    <label class="label" for="custom-model-url">Enter model path or URL:</label>
+                                    <input type="text" id="custom-model-url" class="api-input"
+                                        placeholder="C:/path/to/Model.model3.json or https://example.com/Model.model3.json"
+                                        value="${customModelURL}"
+                                        onkeypress="if(event.key === 'Enter') { handleModelInput(this.value); return false; }">
+                                    <button onclick="handleModelInput(document.getElementById('custom-model-url').value)">Load Model</button>
+                                </div>
+                            </div>
                             <div class="character-grid">
                                 ${characterPaths
                                   .map(
@@ -512,6 +539,18 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                         const vscode = acquireVsCodeApi();
                         let selectedCharacterIndex = 0;
+                        
+                        function handleModelInput(path) {
+                            if (!path) return;
+                            
+                            const cleanPath = path.trim();
+                            if (cleanPath) {
+                                vscode.postMessage({
+                                    type: 'changeCharacter',
+                                    customModelURL: cleanPath
+                                });
+                            }
+                        }
                         
                         // Add click handlers for section headers
                         document.querySelectorAll('.section-header').forEach(header => {
