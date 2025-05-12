@@ -74,10 +74,21 @@ function showSpeechBubble(text, duration = 3000) {
   }, duration);
 }
 
-const loadModel = async (url) => {
-  model = await live2d.Live2DModel.from(
-    url,
-  );
+const loadModel = async (modelUrl) => {
+  if (!modelUrl) {
+    console.error('Model URL is not provided');
+    return;
+  }
+  try {
+    console.log('Loading model from URL:', modelUrl);
+    model = await live2d.Live2DModel.from(modelUrl);
+    if (!model) {
+      throw new Error('Failed to create Live2DModel');
+    }
+  } catch (error) {
+    console.error('Error loading model:', error);
+    throw error;
+  }
 
   app.stage.addChild(model);
 
@@ -320,17 +331,56 @@ function makeDraggable(model) {
   });
 }
 
-async function changeModel(index) {
-  if (model) {
-    await model.motion("JUMP_BACK", undefined, MotionPriority.FORCE);
-    await new Promise(resolve => {
-      model.internalModel.motionManager.on('motionFinish', resolve);
-    });
-    app.stage.removeChild(model);
-    model = null;
+async function changeModel(data) {
+  console.log('Changing model with data:', data);
+  
+  if (!data) {
+    console.error('No data provided for model change');
+    return;
   }
-  modelIndex = index;
-  await loadModel(modelUrls[modelIndex]);
+
+  try {
+    // Clean up existing model
+    if (model) {
+      console.log('Cleaning up existing model');
+      await model.motion("JUMP_BACK", undefined, MotionPriority.FORCE);
+      await new Promise(resolve => {
+        model.internalModel.motionManager.on('motionFinish', resolve);
+      });
+      app.stage.removeChild(model);
+      model = null;
+    }
+
+    console.log("Received model data:", data);
+
+    // Determine which model to load
+    let modelUrl;
+    if (data.customModelURL) {
+      console.log('Using custom model URL:', data.customModelURL);
+      modelUrl = data.customModelURL;
+    } else if (typeof data.modelIndex === 'number' && data.modelIndex >= 0 && data.modelIndex < modelUrls.length) {
+      console.log('Using built-in model index:', data.modelIndex);
+      modelIndex = data.modelIndex;
+      modelUrl = modelUrls[modelIndex];
+    } else {
+      console.warn('Invalid model data, falling back to first model');
+      modelIndex = 0;
+      modelUrl = modelUrls[0];
+    }
+
+    await loadModel(modelUrl);
+    console.log('Model loaded successfully');
+  } catch (error) {
+    console.error('Failed to change model:', error);
+    // Fallback to first built-in model on error
+    try {
+      console.log('Attempting to load fallback model');
+      modelIndex = 0;
+      await loadModel(modelUrls[0]);
+    } catch (fallbackError) {
+      console.error('Failed to load fallback model:', fallbackError);
+    }
+  }
 }
 
 window.electronAPI.onStartSpeak((event, message) => {  
@@ -348,7 +398,10 @@ window.electronAPI.onStopSpeak((event, message) => {
 });
 
 window.electronAPI.onChangeModel((event, message) => {
-  changeModel(message.modelIndex);
+  changeModel({
+    modelIndex: message.modelIndex,
+    customModelURL: message.customModelURL
+  });
 });
 
 window.electronAPI.onQuit((event, message) => {  
@@ -370,3 +423,4 @@ window.electronAPI.onQuit((event, message) => {
   });
   await loadModel(modelUrls[modelIndex]);
 })();
+
