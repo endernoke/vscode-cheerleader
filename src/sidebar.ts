@@ -79,7 +79,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           await this.handleApiKeyUpdate("elevenlabs", data.value);
           break;
         case "saveHuggingFaceKey":
-          // Hugging Face support removed
+          await this.handleApiKeyUpdate("huggingface", data.value);
           break;
         case "changeCharacter":
           console.log(data);
@@ -152,7 +152,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async handleAudioProviderUpdate(provider: 'elevenlabs'): Promise<void> {
+  private async handleAudioProviderUpdate(provider: 'elevenlabs' | 'huggingface'): Promise<void> {
     try {
       await this._apiManager.setAudioProvider(provider);
 
@@ -201,6 +201,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   private async _getHtmlForWebview(webview: vscode.Webview) {
     const elevenLabsKey = await this._context.secrets.get('elevenlabs-key') || '';
+    const huggingFaceKey = await this._context.secrets.get('huggingface-key') || '';
+
     // Get model configuration
     const currentFamily = vscode.workspace.getConfiguration('cheerleader.model').get<string>('family') || 'gpt-4';
 
@@ -389,6 +391,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             <label class="label" for="audio-provider">Audio Provider</label>
                             <select id="audio-provider" class="api-input" onchange="updateAudioProvider()">
                                 <option value="elevenlabs" ${vscode.workspace.getConfiguration('cheerleader.audio').get('provider') === 'elevenlabs' ? 'selected' : ''}>ElevenLabs</option>
+                                <option value="huggingface" ${vscode.workspace.getConfiguration('cheerleader.audio').get('provider') === 'huggingface' ? 'selected' : ''}>Hugging Face</option>
                             </select>
                             <div id="audio-provider-validation" class="validation-message"></div>
 
@@ -397,6 +400,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                 value="${elevenLabsKey}" 
                                 onchange="saveElevenLabsKey(this.value)">
                             <div id="elevenlabs-validation" class="validation-message"></div>
+                            
+                            <label class="label" for="huggingface-key">
+                                Hugging Face API Key <span class="optional">(optional)</span>
+                            </label>
+                            <input type="password" id="huggingface-key" class="api-input" 
+                                value="${huggingFaceKey}" 
+                                onchange="saveHuggingFaceKey(this.value)">
+                            <div id="huggingface-validation" class="validation-message"></div>
 
                             <label class="label" for="model-family">Model Family</label>
                             <select id="model-family" class="api-input" onchange="updateModelConfig()">
@@ -408,6 +419,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                     ? "selected"
                                     : ""
                                 }>GPT-4o Mini</option>
+                                <option value="o1" ${
+                                  currentFamily === "o1" ? "selected" : ""
+                                }>o1 (not supported)</option>
+                                <option value="o1-mini" ${
+                                  currentFamily === "o1-mini" ? "selected" : ""
+                                }>o1-Mini (not supported)</option>
                                 <option value="claude-3.5-sonnet" ${
                                   currentFamily === "claude-3.5-sonnet"
                                     ? "selected"
@@ -644,6 +661,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         function saveElevenLabsKey(value) {
                             vscode.postMessage({ type: 'saveElevenLabsKey', value });
                         }
+                        function saveHuggingFaceKey(value) {
+                            vscode.postMessage({ type: 'saveHuggingFaceKey', value });
+                        }
+
                         // Character selection functions
                         function selectCharacter(index) {
                             selectedCharacterIndex = index;
