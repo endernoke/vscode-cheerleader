@@ -52,22 +52,40 @@ export const createAudioFileFromText = async (
                 "Content-Type": "application/json",
               },
               method: "POST",
-              body: JSON.stringify({ inputs: text }),
+              body: JSON.stringify({ text: text }),
             }
-          ).then(async response => {
-            if (!response.ok) {
-              throw new Error(`API request failed with status ${response.status}`);
-            }
+          )
+            .then(async (response) => {
+              if (!response.ok) {
+                throw new Error(
+                  `API request failed with status ${response.status}`
+                );
+              }
 
-            const audioData = await response.arrayBuffer();
-            const fileStream = createWriteStream(filePath);
-            
-            fileStream.write(Buffer.from(audioData));
-            fileStream.end();
+              // Parse the JSON response to extract the audio URL
+              const result = await response.json();
+              const audioUrl = result.audio.url;
 
-            fileStream.on("finish", () => resolve(filePath));
-            fileStream.on("error", reject);
-          }).catch(reject);
+              // Fetch the audio file from the extracted URL
+              return fetch(audioUrl);
+            })
+            .then(async (audioResponse) => {
+              if (!audioResponse.ok) {
+                throw new Error(
+                  `Failed to fetch audio file with status ${audioResponse.status}`
+                );
+              }
+
+              const audioData = await audioResponse.arrayBuffer();
+              const fileStream = createWriteStream(filePath);
+
+              fileStream.write(Buffer.from(audioData));
+              fileStream.end();
+
+              fileStream.on("finish", () => resolve(filePath));
+              fileStream.on("error", reject);
+            })
+            .catch(reject);
         } catch (error) {
           reject(error);
         }
