@@ -60,52 +60,48 @@ function getVSCodeWindowInfo() {
   return { x: 100, y: 100, width: 800, height: 600 };
 }
 
-export function activateOverlay(context: vscode.ExtensionContext) {
+export async function activateOverlay(context: vscode.ExtensionContext) {
   const webSocketService = WebSocketService.getInstance();
 
   const killOverlayApp = () => {
     console.log("Closing WebSocket server");
-    webSocketService.close();
+    webSocketService.dispose();
   };
 
   // Ensure we get the path to the overlay relative to the extension
   const overlayAppPath = path.join(context.extensionPath, "dist/live2d-container");
 
   if (!fs.existsSync(overlayAppPath)) {
-    vscode.window.showErrorMessage(
-      "Overlay app not found at " + overlayAppPath
-    );
-    return;
+    throw new Error("Overlay app not found at " + overlayAppPath);
   }
 
-  try {
-    // Register command to manually trigger the task
-    let disposable = vscode.commands.registerCommand(
-      "cheerleader.launchOverlay",
-      () => {
-        webSocketService.startServer();
+  // Register command to manually trigger the task
+  let disposable = vscode.commands.registerCommand(
+    "cheerleader.launchOverlay",
+    async () => {
+      const serverStarted = await webSocketService.startServer();
+      if (serverStarted) {
         executeLaunchOverlayTask(overlayAppPath);
+      } else {
+        vscode.window.showInformationMessage('Another instance of the overlay is already running');
       }
-    );
+    }
+  );
 
-    context.subscriptions.push(disposable);
+  context.subscriptions.push(disposable);
 
-    context.subscriptions.push(
-      vscode.commands.registerCommand("cheerleader.killOverlay", () => {
-        killOverlayApp();
-      })
-    );
-
-    // Start WebSocket server and overlay app
-    webSocketService.startServer();
-    executeLaunchOverlayTask(overlayAppPath);
-  } catch (e) {
-    vscode.window.showErrorMessage(`Failed to start overlay: ${e}`);
-  }
+  context.subscriptions.push(
+    vscode.commands.registerCommand("cheerleader.killOverlay", () => {
+      killOverlayApp();
+    })
+  );
 
   context.subscriptions.push(
     vscode.Disposable.from({
       dispose: killOverlayApp,
     })
   );
+
+  // Start the overlay app
+  executeLaunchOverlayTask(overlayAppPath);
 }
