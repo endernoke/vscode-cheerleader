@@ -34,7 +34,7 @@ export const convertSpeechToText = async (
     if (huggingfaceClient) {
       const audioData = fs.readFileSync(audioFilePath);
       const response = await fetch(
-        "https://router.huggingface.co/hf-inference/models/openai/whisper-small",
+        "https://router.huggingface.co/fal-ai/fal-ai/whisper",
         {
           headers: {
             Authorization: `Bearer ${huggingfaceClient.apiKey}`,
