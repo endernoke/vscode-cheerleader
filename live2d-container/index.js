@@ -74,7 +74,7 @@ function showSpeechBubble(text, duration = 3000) {
   }, duration);
 }
 
-const loadModel = async (modelUrl) => {
+const loadModel = async (modelUrl, isCustom = false) => {
   if (!modelUrl) {
     console.error('Model URL is not provided');
     return;
@@ -170,22 +170,26 @@ const loadModel = async (modelUrl) => {
     icon: createSVGElement(Icons.CLOSE),
     tooltip: 'Quit Cheerleader'
   });
-  
-  buttonManager.addButton({
-    onClick: () => {
-      model.handleExecuteMotion('vodka', MotionPriority.FORCE);
-    },
-    icon: createSVGElement(Icons.VODKA),
-    tooltip: 'Пить водку'
-  });
 
-  buttonManager.addButton({
-    onClick: () => {
-      model.handleExecuteMotion('CENTER_HoldPhone', MotionPriority.FORCE);
-    },
-    icon: createSVGElement(Icons.PHONE),
-    tooltip: 'Consume brainrot'
-  });
+  // these custom animatinos are only available on the base models
+  // because not all motions are defined for your custom ones
+  if (!isCustom) {
+    buttonManager.addButton({
+      onClick: () => {
+        model.handleExecuteMotion('vodka', MotionPriority.FORCE);
+      },
+      icon: createSVGElement(Icons.VODKA),
+      tooltip: 'Пить водку'
+    });
+
+    buttonManager.addButton({
+      onClick: () => {
+        model.handleExecuteMotion('CENTER_HoldPhone', MotionPriority.FORCE);
+      },
+      icon: createSVGElement(Icons.PHONE),
+      tooltip: 'Consume brainrot'
+    });
+  }
 
   // buttonManager.addButton({
   //   onClick: () => {
@@ -354,32 +358,19 @@ async function changeModel(data) {
     console.log("Received model data:", data);
 
     // Determine which model to load
-    let modelUrl;
     if (data.customModelURL) {
       console.log('Using custom model URL:', data.customModelURL);
-      modelUrl = data.customModelURL;
+      await loadModel(data.customModelURL, true);
     } else if (typeof data.modelIndex === 'number' && data.modelIndex >= 0 && data.modelIndex < modelUrls.length) {
       console.log('Using built-in model index:', data.modelIndex);
-      modelIndex = data.modelIndex;
-      modelUrl = modelUrls[modelIndex];
+      await loadModel(modelUrls[data.modelIndex]);
     } else {
       console.warn('Invalid model data, falling back to first model');
-      modelIndex = 0;
-      modelUrl = modelUrls[0];
+      await loadModel(modelUrls[0]);
     }
-
-    await loadModel(modelUrl);
     console.log('Model loaded successfully');
   } catch (error) {
     console.error('Failed to change model:', error);
-    // Fallback to first built-in model on error
-    try {
-      console.log('Attempting to load fallback model');
-      modelIndex = 0;
-      await loadModel(modelUrls[0]);
-    } catch (fallbackError) {
-      console.error('Failed to load fallback model:', fallbackError);
-    }
   }
 }
 
