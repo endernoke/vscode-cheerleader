@@ -3,11 +3,10 @@ import player from "play-sound";
 import windowsAudioPlayer from "./play_sound_windows";
 import { existsSync } from "fs";
 import fs from "fs";
-import { v4 as uuid } from "uuid";
 import path from "path";
 import { createAudioFileFromText } from "./text_to_speech";
 import { WebSocketService } from "./websocket_service";
-var mp3Duration = require("mp3-duration");
+import { getAudioDuration } from "../utils/audio";
 
 /**
  * "On the second day, George said 'Let there be sound!' and there was sound."
@@ -100,7 +99,7 @@ export class SoundPlayer {
  * Plays an audio file using the SoundPlayer.
  * @param filePath The path to the audio file.
  * @param displayText Optional text to display during playback.
- * @param customDuration Optional custom duration **in seconds** for the audio.
+ * @param customDuration Optional custom duration **in milliseconds**.
  *                     If not provided, the duration will be calculated from the audio file.
  * @note Apologies for the confusion with seconds instead of ms here, it's for simpler manipulation below
  * @returns A promise that resolves when the audio is played.
@@ -115,28 +114,7 @@ export const playAudioFromFile = async (
   }
   const webSocketService = WebSocketService.getInstance();
   try {
-
-    let audioDuration = 3; // Default duration in seconds
-    if (customDuration) {
-      audioDuration = customDuration;
-    } else if (filePath.endsWith(".mp3")) {
-      try {
-        audioDuration = await new Promise((resolve, reject) => {
-          mp3Duration(filePath, (err: any, duration: number) => {
-            if (err) {
-              console.error("Error getting audio duration:", err);
-              reject(err);
-            } else {
-              resolve(duration);
-            }
-          });
-        });
-      } catch (error) {
-        console.error("[playAudioFromFile] Error getting audio duration:", error);
-      }
-    }
-    
-    const durationMs = Math.ceil(audioDuration * 1000);
+    const durationMs = customDuration ?? await getAudioDuration(filePath);
 
     // Start Live2D character's speech animation
     webSocketService.startSpeak(displayText ?? "Speaking...", durationMs);
@@ -179,38 +157,23 @@ export const playTextToSpeech = async (text: string): Promise<void> => {
       fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    const filename = path.join(
-      tempDir,
-      `${uuid()}.mp3`
-    );
+    let filename;
 
     try {
-      await createAudioFileFromText(text, filename);
+      // let this function create the audio file because it is either wav or mp3 depending on the provider
+      // and we don't want to duplicate the logic here
+      filename = await createAudioFileFromText(text, tempDir);
     } catch (error) {
       console.error("Error creating audio file:", error);
       throw new Error("Failed to create audio file");
     }
+
     if (!filename) {
       throw new Error("Failed to create audio file");
     }
     console.log("Successfully created audio file:", filename);
 
-    let duration = 3; // Default duration in seconds
-    try {
-      duration = await new Promise((resolve, reject) => {
-        mp3Duration(filename, (err: any, duration: number) => {
-          if (err) {
-            console.error("Error getting audio duration:", err);
-            reject(err);
-          } else {
-            resolve(duration);
-          }
-        });
-      });
-    } catch (error) {
-      console.error("Error getting audio duration:", error);
-    }
-    const durationMs = Math.ceil(duration * 1000);
+    const durationMs = await getAudioDuration(filename);
 
     // Start Live2D character's speech animation
     webSocketService.startSpeak(text, durationMs);
@@ -262,8 +225,6 @@ export function activateTTS(context: vscode.ExtensionContext) {
               cancellable: false,
             },
             async () => {
-              // Use a duration based on text length, with a minimum of 3 seconds
-              const duration = Math.max(3000, text.length * 100);
               await playTextToSpeech(text);
             }
           );
