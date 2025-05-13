@@ -15,13 +15,30 @@ import { activateSidebar } from "./sidebar";
 import { APIManager } from "./utils/api_manager";
 // import { createCheerleaderChatParticipant } from "./copilot-wrapper/chat_participant";
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   // Initialize API Manager first
   const apiManager = APIManager.getInstance(context);
   apiManager.initialize();
 
-  // Activate core components
-  activateOverlay(context);
+  // Try to start the WebSocket server and overlay first
+  const webSocketService = WebSocketService.getInstance();
+  const serverStarted = await webSocketService.startServer();
+  
+  if (!serverStarted) {
+    vscode.window.showInformationMessage('Another instance of the cheerleader extension is already running');
+    return;
+  }
+
+  // Start overlay app
+  try {
+    await activateOverlay(context);
+  } catch (e) {
+    webSocketService.dispose();
+    vscode.window.showErrorMessage(`Failed to start overlay: ${e}`);
+    return;
+  }
+
+  // Only proceed with other activations if overlay started successfully
   activateSidebar(context);
 
   // register ai voice commands
@@ -48,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.Disposable.from({
       dispose: () => {
         const webSocketService = WebSocketService.getInstance();
-        webSocketService.close();
+        webSocketService.dispose();
       }
     })
   );

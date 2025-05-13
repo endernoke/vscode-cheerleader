@@ -54,7 +54,7 @@ function createWindow() {
     transparent: true,
     frame: false,
     alwaysOnTop: true,
-    focusable: false,
+    focusable: true, // Allow window to be focused for DevTools
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,
@@ -68,8 +68,6 @@ function createWindow() {
 
   // Welcome message in terminal (because the terminal cannot be closed, show something interesting)
   showWelcomeMessage();
-  // open devtools for debugging
-  // mainWindow.webContents.openDevTools();
 
   if (USE_WEBSOCKET) {
     // Connect to VSCode extension's WebSocket server
@@ -87,7 +85,7 @@ function createWindow() {
         stopSpeak();
       }
       if (data.type === 'changeModel') {
-        changeModel(data.modelIndex);
+        changeModel(data);
       }
       // if (data.type === 'window-info') {
       //   const { x, y, width, height } = data.data;
@@ -101,12 +99,29 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
-  createWindow();
-});
+// Check for single instance lock
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // A second instance tried to run - focus our window
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+
+  app.whenReady().then(() => {
+    createWindow();
+  });
+}
 
 app.on('window-all-closed', () => {
-  quitApp();
+  if (process.platform !== 'darwin') {
+    quitApp();
+  }
 });
 
 ipcMain.on('onCloseButton', () => {
@@ -148,18 +163,30 @@ function stopSpeak() {
   mainWindow.webContents.send('stopSpeak');
 }
 
-function changeModel(modelIndex) {
+function changeModel(data) {
   if (!mainWindow) return;
-  mainWindow.webContents.send('changeModel', { modelIndex });
+  mainWindow.webContents.send('changeModel', {
+    modelIndex: data.modelIndex,
+    customModelURL: data.customModelURL
+  });
 }
 
 function quitApp(mode = "graceful") {
   if (mode === "force") {
-    app.quit();
+    cleanupAndQuit();
     return;
   }
-  mainWindow.webContents.send('quit', {});
-  setTimeout(() => {
-    app.quit();
-  }, 4000); // wait for 4 seconds to let the animation finish
+  if (mainWindow) {
+    mainWindow.webContents.send('quit', {});
+    setTimeout(cleanupAndQuit, 4000); // wait for 4 seconds to let the animation finish
+  } else {
+    cleanupAndQuit();
+  }
+}
+
+function cleanupAndQuit() {
+  if (ws) {
+    ws.close();
+  }
+  app.quit();
 }

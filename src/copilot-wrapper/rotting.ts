@@ -28,7 +28,7 @@ async function monitorRotting() {
     const audioFilePath = vscode.Uri.file(
       `${globalContext.extensionUri.fsPath}/assets/rotting/${fileName}`
     ).fsPath;
-    await playAudioFromFile(audioFilePath, text, 10);
+    await playAudioFromFile(audioFilePath, text, 10 * 1000);
   }
   
   globalContext.globalState.update("lastProductiveState", currentProductiveState);

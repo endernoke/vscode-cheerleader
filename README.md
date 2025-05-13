@@ -52,11 +52,34 @@ Some background features can be configured in the sidebar, refer to the [Setup a
 
 You must provide your own ElevenLabs API key for text-to-speech and speech-to-textn features. It can be obtained for free with quite generous usage limits by signing up for an account at [their website](https://elevenlabs.io/).
 
-> [!CAUTION]
-> In the pre-release version, we used to support both ElevenLabs and HuggingFace. However, we have currently discontinued support for HuggingFace since the Kokoro TTS API is not reliable.
+You can also choose to use Hugging Face's Kokoro and Whisper models for TTS and STT. You can obtained a free API key by signing up for an account at [their website](https://huggingface.co/). **However, we recommend using ElevenLabs since the free tier is much more generous for API usage.**
 
 > [!NOTE]
 > In future releases, we might consider adding local TTS and STT models to avoid the need for API keys. However, this will make the extension less accessible to many users who do not have the required hardware since these models are quite large.
+
+### Electron.js
+
+We require `electron.js` to create an overlay window for the cheerleader (because it is dangerous and impossible to do so within the VSCode workspace editor). We recommend installing it globally so you don't need to install it individually for every workspace.
+
+```sh
+npm install -g electron
+```
+
+> [!NOTE]
+> If you do not have electron installed, a terminal will pop up when you launch the cheerleader to prompt you to install it (type Enter or "y" to install).
+
+### Customizing Cheerleader
+
+Other than the existing anime characters, you can use your own Live2D model, either found online or created by yourself with Live2D Cubism. To do this, paste in either the **URL** or **absolute local path** to the `model.json` file in the sidebar settings.
+
+Here are few free collections of Live2D models on GitHub (we do not own nor are affiliated with any of these repositories):
+
+- [iCharlesZ/vscode-live2d-models](https://github.com/iCharlesZ/vscode-live2d-models/tree/master)
+
+- [imuncle/live2d](https://github.com/imuncle/live2d)
+
+> [!CAUTION]
+> Advanced animations and interactions are only supported on the default models we provided, because custom models might not have the same motions defined.
 
 ### Settings
 
@@ -79,9 +102,6 @@ Available setitngs include:
 - **Features Toggle**: Enable or disable different features of the cheerleader.
 
 - **Feature Settings**: Configure settings like break reminder interval, time to quit session, etc from both the sidebar and the original settings panel
-
-> [!NOTE]
-> In a future release soon you will be able to bring any Live2D model you want by providing a URL. We will also expand the default catalog to include characters other than anime.
 
 ## Installation
 
@@ -151,11 +171,11 @@ In the future, we plan to extend more unique functionalities to the cheerleader 
 
 **We believe coding should feel less like solitary, mundane work and more like a creative jam session.** That’s why we built the cheerleader — not just as an assistant, but as a vibrant, voice-driven companion that brings energy, motivation, and a bit of fun to your coding flow.
 
-Most coding agents today (like Copilot, Cursor, or Roo) are powerful but sterile — all utility, no personality. They’re optimized for efficiency, but forget that creativity thrives in an environment that’s playful, human, and a little unexpected. We’re flipping the script by making human-computer interaction not only smart, but emotionally engaging.
+Most coding agents today (like Copilot, Cursor, or Roo) are powerful but sterile — all utility, no personality. They’re optimized for efficiency, but forget that creativity thrives in an environment that’s playful, human, and a little unexpected.
 
-We also see coding as inherently social — even when you’re solo. Whether you’re rubber-ducking a bug or celebrating a passing test, the cheerleader is there to respond, react, and cheer you on in real time.
+We also see coding as inherently social — even when you’re solo. That's why rubber-duck debugging and pair programming have been so popular and effective.
 
-Importantly, we’re not trying to replace mature agentic tools which are optimized and excellent. Cheerleader is here to complement and emphasize **reflection and growth**. It’s ideal for moments when you want to think through a problem, like grinding LeetCode or learning a new language — not just vibe code your way through it. Our goal isn’t to automate away the effort, but to make the effort more meaningful. That’s how human skill is perfected.
+Cheerleader is here to complement these tools and emphasize **reflection and growth**. It’s ideal for moments when you want to think through a problem, like grinding LeetCode or learning a new language — not just vibe code your way through it. Our goal isn’t to automate away the effort, but to make the effort more meaningful. That’s how human skill is perfected.
 
 **We're building a collaborator with charm.** One that talks, listens, celebrates small wins, and nudges you forward when you hit a wall. Programming should be powerful _and_ delightful. That’s our philosophy.
 

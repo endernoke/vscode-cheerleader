@@ -3,14 +3,14 @@
   "displayName": "Cheerleader",
   "publisher": "cheerleader",
   "description": "Supercharge your dev experience with an anime coding companion",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.99.0"
   },
   "icon": "assets/cheerleader_icon.png",
   "author": {
     "name": "James Zheng and Jet Chiang",
-    "email": "endernoke@gmail.com"
+    "email": "jetjiang.ez@gmail.com"
   },
   "pricing": "Free",
   "categories": [
@@ -27,7 +27,7 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/endernoke/vscode-cheerleader/issues",
-    "email": "endernoke@gmail.com"
+    "email": "jetjiang.ez@gmail.com"
   },
   "homepage": "https://github.com/endernoke/vscode-cheerleader/blob/main/README.md",
   "activationEvents": [
@@ -191,6 +191,11 @@
           "default": "gpt-4o",
           "description": "The Copilot model family to use"
         },
+        "cheerleader.model.customModelURL": {
+          "type": "string",
+          "default": "",
+          "description": "The URL of a custom Live2D model (locally or online) to use"
+        },
         "cheerleader.audio.provider": {
           "type": "string",
           "enum": [
@@ -260,6 +265,7 @@
     "play-sound": "^1.1.6",
     "tsx": "^4.19.3",
     "uuid": "^11.1.0",
+    "wavefile": "^11.0.0",
     "ws": "^8.18.1"
   }
 }

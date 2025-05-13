@@ -79,12 +79,26 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           await this.handleApiKeyUpdate("elevenlabs", data.value);
           break;
         case "saveHuggingFaceKey":
-          // Hugging Face support removed
+          await this.handleApiKeyUpdate("huggingface", data.value);
           break;
         case "changeCharacter":
-          WebSocketService.getInstance().sendMessage("changeModel", {
-            modelIndex: data.index,
-          });
+          console.log(data);
+          if (data.customModelURL) {
+            // Store custom model URL in configuration
+            const modelConfig = vscode.workspace.getConfiguration('cheerleader.model');
+            await modelConfig.update('customModelURL', data.customModelURL, vscode.ConfigurationTarget.Global);
+
+            console.log(data.customModelURL);
+            
+            WebSocketService.getInstance().sendMessage("changeModel", {
+              modelIndex: -1, // Special index for custom model
+              customModelURL: data.customModelURL
+            });
+          } else {
+            WebSocketService.getInstance().sendMessage("changeModel", {
+              modelIndex: data.index,
+            });
+          }
           break;
         case "updateModelConfig":
           await this.handleModelConfigUpdate(data.config);
@@ -138,7 +152,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async handleAudioProviderUpdate(provider: 'elevenlabs'): Promise<void> {
+  private async handleAudioProviderUpdate(provider: 'elevenlabs' | 'huggingface'): Promise<void> {
     try {
       await this._apiManager.setAudioProvider(provider);
 
@@ -187,6 +201,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   private async _getHtmlForWebview(webview: vscode.Webview) {
     const elevenLabsKey = await this._context.secrets.get('elevenlabs-key') || '';
+    const huggingFaceKey = await this._context.secrets.get('huggingface-key') || '';
+
     // Get model configuration
     const currentFamily = vscode.workspace.getConfiguration('cheerleader.model').get<string>('family') || 'gpt-4';
 
@@ -209,6 +225,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       .get("cheerleader.paste.monitoringEnabled", false);
 
     // Create character paths for the grid
+    // Get custom model URL from configuration
+    const customModelURL = vscode.workspace.getConfiguration('cheerleader.model').get('customModelURL', '');
+
     const characters = [
         "Nika",
         "Neko",
@@ -372,6 +391,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             <label class="label" for="audio-provider">Audio Provider</label>
                             <select id="audio-provider" class="api-input" onchange="updateAudioProvider()">
                                 <option value="elevenlabs" ${vscode.workspace.getConfiguration('cheerleader.audio').get('provider') === 'elevenlabs' ? 'selected' : ''}>ElevenLabs</option>
+                                <option value="huggingface" ${vscode.workspace.getConfiguration('cheerleader.audio').get('provider') === 'huggingface' ? 'selected' : ''}>Hugging Face</option>
                             </select>
                             <div id="audio-provider-validation" class="validation-message"></div>
 
@@ -380,6 +400,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                 value="${elevenLabsKey}" 
                                 onchange="saveElevenLabsKey(this.value)">
                             <div id="elevenlabs-validation" class="validation-message"></div>
+                            
+                            <label class="label" for="huggingface-key">
+                                Hugging Face API Key <span class="optional">(optional)</span>
+                            </label>
+                            <input type="password" id="huggingface-key" class="api-input" 
+                                value="${huggingFaceKey}" 
+                                onchange="saveHuggingFaceKey(this.value)">
+                            <div id="huggingface-validation" class="validation-message"></div>
 
                             <label class="label" for="model-family">Model Family</label>
                             <select id="model-family" class="api-input" onchange="updateModelConfig()">
@@ -391,6 +419,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                     ? "selected"
                                     : ""
                                 }>GPT-4o Mini</option>
+                                <option value="o1" ${
+                                  currentFamily === "o1" ? "selected" : ""
+                                }>o1 (not supported)</option>
+                                <option value="o1-mini" ${
+                                  currentFamily === "o1-mini" ? "selected" : ""
+                                }>o1-Mini (not supported)</option>
                                 <option value="claude-3.5-sonnet" ${
                                   currentFamily === "claude-3.5-sonnet"
                                     ? "selected"
@@ -409,6 +443,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             <h3>Character Selection</h3>
                         </div>
                         <div class="section-content">
+                            <div class="custom-model-section">
+                                <div class="custom-model-input">
+                                    <label class="label" for="custom-model-url">Enter model path or URL:</label>
+                                    <input type="text" id="custom-model-url" class="api-input"
+                                        placeholder="C:/path/to/Model.model3.json or https://example.com/Model.model3.json"
+                                        value="${customModelURL}"
+                                        onkeypress="if(event.key === 'Enter') { handleModelInput(this.value); return false; }">
+                                    <button onclick="handleModelInput(document.getElementById('custom-model-url').value)">Load Model</button>
+                                </div>
+                            </div>
                             <div class="character-grid">
                                 ${characterPaths
                                   .map(
@@ -513,6 +557,18 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         const vscode = acquireVsCodeApi();
                         let selectedCharacterIndex = 0;
                         
+                        function handleModelInput(path) {
+                            if (!path) return;
+                            
+                            const cleanPath = path.trim();
+                            if (cleanPath) {
+                                vscode.postMessage({
+                                    type: 'changeCharacter',
+                                    customModelURL: cleanPath
+                                });
+                            }
+                        }
+                        
                         // Add click handlers for section headers
                         document.querySelectorAll('.section-header').forEach(header => {
                             header.addEventListener('click', () => {
@@ -605,6 +661,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         function saveElevenLabsKey(value) {
                             vscode.postMessage({ type: 'saveElevenLabsKey', value });
                         }
+                        function saveHuggingFaceKey(value) {
+                            vscode.postMessage({ type: 'saveHuggingFaceKey', value });
+                        }
+
                         // Character selection functions
                         function selectCharacter(index) {
                             selectedCharacterIndex = index;
