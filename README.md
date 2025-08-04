@@ -3,11 +3,11 @@
   <p>Supercharge your dev experience with an anime coding companion!</p>
 </div>
 
-<div style="background-color: #ffe6e6; padding: 20px; color: #e74c3c; border-radius: 5px; border:2px solid #ff4444; margin-bottom: 20px;">
-  <h2>Maintainers Wanted!</h2>
-  <p>We are looking for new maintainers to help keep this project alive. Please reach out if you're interested in contributing.</p>
-  <a href="/issues/60">Learn More (#60)</a>
-</div>
+> [!IMPORTANT]
+> ## Maintainers Wanted!</h2>
+> We are looking for new maintainers to help keep this project alive. Please reach out if you're interested in contributing.
+> 
+> [Learn More: #60](https://github.com/endernoke/vscode-cheerleader/issues/60)
 
 <div align="center">
   <p align="center">
